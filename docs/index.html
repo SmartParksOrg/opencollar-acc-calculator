@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenCollar ACC Storage Calculator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <div class="brand">
+        <div class="logo">OC</div>
+        <div>
+          <h1>OpenCollar ACC Storage Calculator</h1>
+          <p>Estimate flash impact for accelerometer burst configurations (1 burst = 1 message).</p>
+        </div>
+      </div>
+      <div class="status">
+        <div id="fitBadge" class="badge">FITS</div>
+        <div class="status-meta">
+          <div><span class="label">Days to fill</span> <span id="daysToFill">—</span></div>
+          <div><span class="label">MiB/day</span> <span id="mibPerDay">—</span></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap grid">
+    <section class="panel">
+      <h2>Inputs</h2>
+      <div class="field">
+        <label for="fs">Sampling frequency per axis (Hz)</label>
+        <div class="input-row">
+          <input id="fs" type="number" min="0" step="1" value="20" />
+          <input id="fsRange" type="range" min="1" max="200" step="1" value="20" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="L">Burst length L (s)</label>
+        <div class="input-row">
+          <input id="L" type="number" min="0" step="0.1" value="3" />
+          <input id="LRange" type="range" min="0.1" max="30" step="0.1" value="3" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="I">Burst interval I (s between burst starts)</label>
+        <div class="input-row">
+          <input id="I" type="number" min="0" step="1" value="120" />
+          <input id="IRange" type="range" min="1" max="3600" step="1" value="120" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Axes enabled (A)</label>
+        <div class="segmented" role="group" aria-label="Axes">
+          <button type="button" data-axes="1">1 Axis</button>
+          <button type="button" data-axes="2">2 Axes</button>
+          <button type="button" data-axes="3" class="active">3 Axes</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="b">Bits per sample (b)</label>
+        <select id="b">
+          <option value="12">12-bit</option>
+          <option value="16" selected>16-bit</option>
+        </select>
+      </div>
+
+      <div class="field grid-3">
+        <div>
+          <label for="H">Header bytes (H)</label>
+          <input id="H" type="number" min="0" step="1" value="24" />
+        </div>
+        <div>
+          <label for="F">Footer bytes (F)</label>
+          <input id="F" type="number" min="0" step="1" value="4" />
+        </div>
+        <div>
+          <label for="O">Extra overhead bytes (O)</label>
+          <input id="O" type="number" min="0" step="1" value="0" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="C">Compression factor (C)</label>
+        <input id="C" type="number" min="1" step="0.1" value="1" />
+      </div>
+
+      <div class="field">
+        <label for="S">Smart sampling factor (S)</label>
+        <div class="input-row">
+          <input id="S" type="number" min="0" max="1" step="0.01" value="1" />
+          <input id="SRange" type="range" min="0" max="1" step="0.01" value="1" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Flash size</label>
+        <div class="radio-group">
+          <label><input type="radio" name="flash" value="16" checked /> 128 Mbit (16 MiB)</label>
+          <label><input type="radio" name="flash" value="32" /> 256 Mbit (32 MiB)</label>
+          <label><input type="radio" name="flash" value="custom" /> Custom</label>
+        </div>
+        <input id="flashCustom" type="number" min="0" step="0.1" value="16" />
+      </div>
+
+      <div class="field">
+        <label for="U">Usable flash fraction (U)</label>
+        <div class="input-row">
+          <input id="U" type="number" min="0" max="1" step="0.01" value="1" />
+          <input id="URange" type="range" min="0" max="1" step="0.01" value="1" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="D">Budget horizon (days)</label>
+        <input id="D" type="number" min="0" step="1" value="30" />
+      </div>
+
+      <div id="warnings" class="warnings"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Outputs</h2>
+      <div class="output-section">
+        <h3>Per message</h3>
+        <div class="output-grid" id="perMessage"></div>
+      </div>
+      <div class="output-section">
+        <h3>Per day</h3>
+        <div class="output-grid" id="perDay"></div>
+      </div>
+      <div class="output-section">
+        <h3>Flash budget</h3>
+        <div class="output-grid" id="flashBudget"></div>
+      </div>
+    </section>
+
+    <section class="panel full">
+      <h2>Scenarios</h2>
+      <div class="scenario-actions">
+        <button id="saveScenario">Save scenario</button>
+        <button id="exportScenarios">Export JSON</button>
+        <label class="file-input">
+          Import JSON
+          <input id="importScenarios" type="file" accept="application/json" />
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>fs</th>
+              <th>L</th>
+              <th>I</th>
+              <th>A</th>
+              <th>b</th>
+              <th>Overhead</th>
+              <th>C</th>
+              <th>S</th>
+              <th>MiB/day</th>
+              <th>Days_full</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="scenarioTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel full">
+      <h2>Sweep</h2>
+      <div class="sweep-controls">
+        <div>
+          <label for="sweepVar">Sweep variable</label>
+          <select id="sweepVar">
+            <option value="fs">fs</option>
+            <option value="I">I</option>
+            <option value="L">L</option>
+            <option value="S">S</option>
+          </select>
+        </div>
+        <div>
+          <label for="sweepMin">Min</label>
+          <input id="sweepMin" type="number" step="0.1" value="5" />
+        </div>
+        <div>
+          <label for="sweepMax">Max</label>
+          <input id="sweepMax" type="number" step="0.1" value="100" />
+        </div>
+        <div>
+          <label for="sweepStep">Step</label>
+          <input id="sweepStep" type="number" step="0.1" value="5" />
+        </div>
+        <div>
+          <label for="sweepMetric">Output</label>
+          <select id="sweepMetric">
+            <option value="MiB_day">MiB/day</option>
+            <option value="Days_full">Days_full</option>
+          </select>
+        </div>
+      </div>
+      <canvas id="sweepChart" width="980" height="320"></canvas>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">Built for OpenCollar ACC burst storage estimation. All calculations are client-side.</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
