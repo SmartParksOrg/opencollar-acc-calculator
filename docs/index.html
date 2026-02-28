@@ -20,7 +20,7 @@
         <div id="fitBadge" class="badge">FITS</div>
         <div class="status-meta">
           <div><span class="label">Days to fill</span> <span id="daysToFill">—</span></div>
-          <div><span class="label">MiB/day</span> <span id="mibPerDay">—</span></div>
+          <div><span class="label">MB/day</span> <span id="mibPerDay">—</span></div>
         </div>
       </div>
     </div>
@@ -30,21 +30,21 @@
     <section class="panel">
       <h2>Inputs</h2>
       <div class="field">
-        <label for="fs">Sampling frequency per axis (Hz)</label>
+        <label for="fs">Sampling frequency (Hz, per axis)</label>
         <div class="input-row">
           <input id="fs" type="number" min="0" step="1" value="20" />
           <input id="fsRange" type="range" min="1" max="200" step="1" value="20" />
         </div>
       </div>
       <div class="field">
-        <label for="L">Burst length L (s)</label>
+        <label for="L">Burst length (seconds)</label>
         <div class="input-row">
           <input id="L" type="number" min="0" step="0.1" value="3" />
           <input id="LRange" type="range" min="0.1" max="30" step="0.1" value="3" />
         </div>
       </div>
       <div class="field">
-        <label for="I">Burst interval I (s between burst starts)</label>
+        <label for="I">Burst interval (seconds between burst starts)</label>
         <div class="input-row">
           <input id="I" type="number" min="0" step="1" value="120" />
           <input id="IRange" type="range" min="1" max="3600" step="1" value="120" />
@@ -52,7 +52,7 @@
       </div>
 
       <div class="field">
-        <label>Axes enabled (A)</label>
+        <label>Axes enabled</label>
         <div class="segmented" role="group" aria-label="Axes">
           <button type="button" data-axes="1">1 Axis</button>
           <button type="button" data-axes="2">2 Axes</button>
@@ -61,35 +61,53 @@
       </div>
 
       <div class="field">
-        <label for="b">Bits per sample (b)</label>
+        <label for="b">Bits per sample</label>
+        <div class="helper">Choose the sensor resolution per axis (12-bit or 16-bit). Higher bits increase storage.</div>
         <select id="b">
           <option value="12">12-bit</option>
           <option value="16" selected>16-bit</option>
         </select>
+        <div id="sampleExample" class="helper"></div>
       </div>
 
-      <div class="field grid-3">
-        <div>
-          <label for="H">Header bytes (H)</label>
-          <input id="H" type="number" min="0" step="1" value="24" />
-        </div>
-        <div>
-          <label for="F">Footer bytes (F)</label>
-          <input id="F" type="number" min="0" step="1" value="4" />
-        </div>
-        <div>
-          <label for="O">Extra overhead bytes (O)</label>
-          <input id="O" type="number" min="0" step="1" value="0" />
+      <div class="field">
+        <label>Protocol (fixed)</label>
+        <div class="helper">
+          Payload = Port (1B) + Msg ID (1B) + Length (2B) + Data.
+          Data = Timestamp (4B, uint32 seconds) + metadata + samples. Port 25, Msg ID 1. Length is data length only.
         </div>
       </div>
 
       <div class="field">
-        <label for="C">Compression factor (C)</label>
-        <input id="C" type="number" min="1" step="0.1" value="1" />
+        <label>Compression</label>
+        <div class="inline-row">
+          <label><input type="checkbox" id="compressionEnabled" /> Enable compression</label>
+        </div>
+        <div class="helper">When enabled, choose a method to estimate storage impact.</div>
+        <div id="compressionOptions" class="compression-options">
+          <div class="field">
+            <label for="compressionMethod">
+              Compression method
+              <span id="compressionTooltip" class="info-tip" data-tooltip="Select a method to see a brief description.">i</span>
+            </label>
+            <select id="compressionMethod">
+              <option value="delta_bitpack">Delta + bit packing</option>
+              <option value="sprintz">Sprintz (delta + bit packing + RLE + entropy)</option>
+              <option value="rle">Run-length encoding</option>
+              <option value="huffman">Entropy coding / Huffman</option>
+              <option value="downsample">Downsampling</option>
+              <option value="quantization">Quantization</option>
+            </select>
+          </div>
+          <div id="compressionNote" class="helper"></div>
+          <input id="C" type="hidden" value="1" />
+          <div class="helper">Compression factor applied: <strong id="compressionFactorValue">1.0×</strong></div>
+        </div>
       </div>
 
       <div class="field">
-        <label for="S">Smart sampling factor (S)</label>
+        <label for="S">Smart sampling factor</label>
+        <div class="helper">Fraction of planned bursts actually stored (0–1). Example: 0.5 stores half the bursts.</div>
         <div class="input-row">
           <input id="S" type="number" min="0" max="1" step="0.01" value="1" />
           <input id="SRange" type="range" min="0" max="1" step="0.01" value="1" />
@@ -99,18 +117,18 @@
       <div class="field">
         <label>Flash size</label>
         <div class="radio-group">
-          <label><input type="radio" name="flash" value="16" checked /> 128 Mbit (16 MiB)</label>
-          <label><input type="radio" name="flash" value="32" /> 256 Mbit (32 MiB)</label>
+          <label><input type="radio" name="flash" value="16" checked /> 128 Mbit (16 MB)</label>
+          <label><input type="radio" name="flash" value="32" /> 256 Mbit (32 MB)</label>
           <label><input type="radio" name="flash" value="custom" /> Custom</label>
         </div>
         <input id="flashCustom" type="number" min="0" step="0.1" value="16" />
       </div>
 
       <div class="field">
-        <label for="U">Usable flash fraction (U)</label>
+        <label for="U">Usable flash percentage</label>
         <div class="input-row">
-          <input id="U" type="number" min="0" max="1" step="0.01" value="1" />
-          <input id="URange" type="range" min="0" max="1" step="0.01" value="1" />
+          <input id="U" type="number" min="0" max="100" step="1" value="100" />
+          <input id="URange" type="range" min="0" max="100" step="1" value="100" />
         </div>
       </div>
 
@@ -124,17 +142,93 @@
 
     <section class="panel">
       <h2>Outputs</h2>
+      <div class="visuals">
+        <div class="visual-card">
+          <div class="visual-header">
+            <span>Storage utilization (for horizon)</span>
+            <span id="utilLabel">—</span>
+          </div>
+          <div class="bar">
+            <div id="utilBar" class="bar-fill"></div>
+          </div>
+          <div class="visual-meta">
+            <span id="utilDetail">—</span>
+          </div>
+        </div>
+        <div class="visual-card">
+          <div class="visual-header">
+            <span>Daily consumption</span>
+            <span id="dailyLabel">—</span>
+          </div>
+          <div class="bar">
+            <div id="dailyBar" class="bar-fill accent"></div>
+          </div>
+          <div class="visual-meta">
+            <span id="dailyDetail">—</span>
+          </div>
+        </div>
+      </div>
       <div class="output-section">
-        <h3>Per message</h3>
+        <h3>Per burst (stored payload)</h3>
+        <p class="helper">
+          A “burst” is one stored record in flash. Samples per axis = sampling frequency × burst length.
+        </p>
         <div class="output-grid" id="perMessage"></div>
+      </div>
+      <div class="output-section">
+        <h3>Sample message (synthetic)</h3>
+        <p class="helper">
+          This preview shows a synthetic message with the current size. It does not contain real sensor data.
+        </p>
+        <div class="message-preview">
+          <div class="message-meta">
+            <span id="messageSize">—</span>
+            <button id="toggleEncoding" type="button">Show hex</button>
+          </div>
+          <div class="message-legend">
+            <span class="seg-label seg-port">Port</span>
+            <span class="seg-label seg-msgid">Msg ID</span>
+            <span class="seg-label seg-length">Length</span>
+            <span class="seg-label seg-timestamp">Timestamp</span>
+            <span class="seg-label seg-meta">Metadata</span>
+            <span class="seg-label seg-samples">Samples</span>
+          </div>
+          <pre id="messagePreview" class="code-block">—</pre>
+        </div>
       </div>
       <div class="output-section">
         <h3>Per day</h3>
         <div class="output-grid" id="perDay"></div>
       </div>
       <div class="output-section">
+        <h3>Rates & utilization over time</h3>
+        <p class="helper">Assumes 30-day month and 365-day year for the estimates below.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Interval</th>
+                <th>Messages</th>
+                <th>Data (MB)</th>
+                <th>Storage used</th>
+              </tr>
+            </thead>
+            <tbody id="timeTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="output-section">
         <h3>Flash budget</h3>
         <div class="output-grid" id="flashBudget"></div>
+      </div>
+      <div class="output-section">
+        <h3>Transfer planning</h3>
+        <p class="helper">Storage is per burst and not split. Transfer can split a stored burst to fit the chosen transport.</p>
+        <div class="transfer-controls">
+          <label><input type="radio" name="transfer" value="ble" checked /> BLE</label>
+          <label><input type="radio" name="transfer" value="lorawan" /> LoRaWAN</label>
+        </div>
+        <div id="transferDetails" class="transfer-details"></div>
       </div>
     </section>
 
@@ -153,16 +247,16 @@
           <thead>
             <tr>
               <th>Name</th>
-              <th>fs</th>
-              <th>L</th>
-              <th>I</th>
-              <th>A</th>
-              <th>b</th>
-              <th>Overhead</th>
-              <th>C</th>
-              <th>S</th>
-              <th>MiB/day</th>
-              <th>Days_full</th>
+              <th>Sampling (Hz)</th>
+              <th>Burst (s)</th>
+              <th>Interval (s)</th>
+              <th>Axes</th>
+              <th>Bits</th>
+              <th>Payload bytes</th>
+              <th>Compression</th>
+              <th>Smart sampling</th>
+              <th>MB/day</th>
+              <th>Days to full</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -173,14 +267,17 @@
 
     <section class="panel full">
       <h2>Sweep</h2>
+      <p class="helper">
+        Choose a variable to sweep, set a min/max/step, and pick an output. The chart will plot how the output changes while all other inputs remain fixed to the current values.
+      </p>
       <div class="sweep-controls">
         <div>
           <label for="sweepVar">Sweep variable</label>
           <select id="sweepVar">
-            <option value="fs">fs</option>
-            <option value="I">I</option>
-            <option value="L">L</option>
-            <option value="S">S</option>
+            <option value="fs">Sampling frequency (Hz)</option>
+            <option value="I">Burst interval (s)</option>
+            <option value="L">Burst length (s)</option>
+            <option value="S">Smart sampling factor</option>
           </select>
         </div>
         <div>
@@ -198,8 +295,8 @@
         <div>
           <label for="sweepMetric">Output</label>
           <select id="sweepMetric">
-            <option value="MiB_day">MiB/day</option>
-            <option value="Days_full">Days_full</option>
+            <option value="MiB_day">MB/day</option>
+            <option value="Days_full">Days to full</option>
           </select>
         </div>
       </div>
@@ -208,7 +305,9 @@
   </main>
 
   <footer class="site-footer">
-    <div class="wrap">Built for OpenCollar ACC burst storage estimation. All calculations are client-side.</div>
+    <div class="wrap">
+      Built for OpenCollar ACC burst storage estimation. All calculations are client-side. Displayed “MB” uses 1,048,576 bytes (MiB).
+    </div>
   </footer>
 
   <script src="app.js"></script>
