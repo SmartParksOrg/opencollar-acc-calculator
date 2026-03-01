@@ -23,9 +23,11 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
     : FLASH_OPTIONS[0].bytes;
 
   return (
-    <section className="section card">
-      <h2>1. Device constraints</h2>
-      <div className="grid-2">
+    <section className="section card collapsible">
+      <details open>
+        <summary><span className="section-title">1. Device constraints</span></summary>
+        <div className="collapsible-content">
+          <div className="grid-2">
         <FieldCard
           label="Battery preset"
           help="Default baseline is a single Saft LS14250 cell. Choose a preset or keep custom values."
@@ -227,9 +229,9 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
             onChange={(e) => patch((c) => { c.uncertainty.enabled = e.target.checked; })}
           />
         </FieldCard>
-      </div>
-      {config.uncertainty.enabled ? (
-        <div className="grid-3" style={{ marginTop: "0.75rem" }}>
+          </div>
+          {config.uncertainty.enabled ? (
+            <div className="grid-3" style={{ marginTop: "0.75rem" }}>
           <FieldCard
             label="Best-case factor"
             help="Current multiplier used for optimistic runtime."
@@ -281,8 +283,10 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
               onChange={(e) => patch((c) => { c.uncertainty.worst_case_factor = Number(e.target.value); })}
             />
           </FieldCard>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </details>
     </section>
   );
 }

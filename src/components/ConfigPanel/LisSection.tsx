@@ -17,9 +17,11 @@ export function LisSection({ config, onChange }: Props): JSX.Element {
   const usingCustomOdr = !ODR_CHOICES.includes(config.lis.odr_hz);
 
   return (
-    <section className="section card">
-      <h2>2. LIS2DW12 sampling & FIFO</h2>
-      <div className="grid-2">
+    <section className="section card collapsible">
+      <details open>
+        <summary><span className="section-title">2. LIS2DW12 sampling & FIFO</span></summary>
+        <div className="collapsible-content">
+          <div className="grid-2">
         <FieldCard
           label="ODR (Hz)"
           help="Sampling rate. Higher ODR captures more detail but increases sensor current and FIFO servicing frequency."
@@ -181,7 +183,9 @@ export function LisSection({ config, onChange }: Props): JSX.Element {
             })}
           />
         </FieldCard>
-      </div>
+          </div>
+        </div>
+      </details>
     </section>
   );
 }

@@ -65,23 +65,25 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
   const showManual = config.smartSampling.threshold_mode === "manual";
 
   return (
-    <section className="section card">
-      <h2>5. Smart Sampling (Storage filtering)</h2>
-      <p className="help" style={{ marginTop: 0 }}>
+    <section className="section card collapsible">
+      <details open>
+        <summary><span className="section-title">5. Smart Sampling (Storage filtering)</span></summary>
+        <div className="collapsible-content">
+          <p className="help" style={{ marginTop: 0 }}>
         Smart sampling does not change accelerometer sampling or FIFO servicing. It only decides which computed windows are
         stored to flash.
-      </p>
+          </p>
 
-      <div className="button-row" style={{ marginBottom: "0.75rem" }}>
+          <div className="button-row" style={{ marginBottom: "0.75rem" }}>
         <button type="button" className="secondary" onClick={() => applyPreset("store_all")}>Store All</button>
         <button type="button" className="secondary" onClick={() => applyPreset("high_only")}>High Activity Only</button>
         <button type="button" className="secondary" onClick={() => applyPreset("high_plus_baseline")}>
           High Activity + Baseline
         </button>
         <button type="button" className="secondary" onClick={() => applyPreset("episodes")}>Episodes</button>
-      </div>
+          </div>
 
-      <div className="grid-2">
+          <div className="grid-2">
         <FieldCard
           label="Enable smart sampling"
           help="What is this? Enables storage filtering so windows are stored when activity rules match."
@@ -155,9 +157,9 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             ))}
           </select>
         </FieldCard>
-      </div>
+          </div>
 
-      <div className="field" style={{ marginTop: "0.75rem" }}>
+          <div className="field" style={{ marginTop: "0.75rem" }}>
         <label>Threshold mode</label>
         <p className="help">What is this? Sets whether thresholds are disabled, fixed in mg, or auto percentile based.</p>
         <div className="button-row">
@@ -186,10 +188,10 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
           <li>Storage: Auto and manual can reduce bytes/day relative to off.</li>
           <li>Data quality: Auto adapts across species using calibration percentiles.</li>
         </ul>
-      </div>
+          </div>
 
-      {showAuto ? (
-        <div className="grid-2" style={{ marginTop: "0.75rem" }}>
+          {showAuto ? (
+            <div className="grid-2" style={{ marginTop: "0.75rem" }}>
           <FieldCard
             label="Calibration duration (hours)"
             help="What is this? Duration used on-device to learn percentile thresholds from observed motion."
@@ -264,11 +266,11 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
               onChange={(e) => patch((c) => { c.smartSampling.peak_percentile = Number(e.target.value); })}
             />
           </FieldCard>
-        </div>
-      ) : null}
+            </div>
+          ) : null}
 
-      {showManual ? (
-        <div className="grid-2" style={{ marginTop: "0.75rem" }}>
+          {showManual ? (
+            <div className="grid-2" style={{ marginTop: "0.75rem" }}>
           <FieldCard
             label="Enter threshold (mg)"
             help="What is this? Manual activity threshold to enter active state; may require species calibration."
@@ -322,10 +324,10 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
               onChange={(e) => patch((c) => { c.smartSampling.peak_threshold_mg = Number(e.target.value); })}
             />
           </FieldCard>
-        </div>
-      ) : null}
+            </div>
+          ) : null}
 
-      <div className="grid-2" style={{ marginTop: "0.75rem" }}>
+          <div className="grid-2" style={{ marginTop: "0.75rem" }}>
         <FieldCard
           label="Consecutive windows to enter"
           help="What is this? Debounce count required before entering active state."
@@ -396,9 +398,9 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             onChange={(e) => patch((c) => { c.smartSampling.baseline_keep_1_in_n = Number(e.target.value); })}
           />
         </FieldCard>
-      </div>
+          </div>
 
-      <div className="field" style={{ marginTop: "0.75rem" }}>
+          <div className="field" style={{ marginTop: "0.75rem" }}>
         <label>
           <input
             type="checkbox"
@@ -416,10 +418,10 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
           <li>Storage: Adds context windows around triggers.</li>
           <li>Data quality: Better transition context for behavior interpretation.</li>
         </ul>
-      </div>
+          </div>
 
-      {config.smartSampling.episodes_enabled ? (
-        <div className="grid-3" style={{ marginTop: "0.75rem" }}>
+          {config.smartSampling.episodes_enabled ? (
+            <div className="grid-3" style={{ marginTop: "0.75rem" }}>
           <FieldCard
             label="Pre windows"
             help="What is this? Number of windows stored before each trigger."
@@ -471,10 +473,10 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
               onChange={(e) => patch((c) => { c.smartSampling.episode_cooldown_windows = Number(e.target.value); })}
             />
           </FieldCard>
-        </div>
-      ) : null}
+            </div>
+          ) : null}
 
-      <div className="card" style={{ marginTop: "0.75rem", padding: "0.75rem" }}>
+          <div className="card" style={{ marginTop: "0.75rem", padding: "0.75rem" }}>
         <h3 style={{ marginTop: 0, marginBottom: "0.5rem" }}>Assumptions (simulator)</h3>
         <p className="help" style={{ marginTop: 0 }}>
           In firmware, percentiles are learned during calibration from observed VeDBA distribution; simulator uses assumed
@@ -578,12 +580,14 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             </FieldCard>
           ) : null}
         </div>
-      </div>
+          </div>
 
-      <div className="small" style={{ marginTop: "0.5rem" }}>
+          <div className="small" style={{ marginTop: "0.5rem" }}>
         Advanced note: debounce/hysteresis reduces stored windows in noisy threshold regions; this simulator uses an approximate
         factor, not a full state model.
-      </div>
+          </div>
+        </div>
+      </details>
     </section>
   );
 }

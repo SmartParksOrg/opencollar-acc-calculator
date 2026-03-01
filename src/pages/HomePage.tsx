@@ -71,15 +71,20 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
 
       <div className="layout">
         <main>
-          <div className="card" style={{ marginBottom: "1rem" }}>
-            <ExampleConfigSelect onApply={setConfig} current={config} />
-            {config.lis.odr_hz >= 100 ? (
-              <div className="notice">High detail profile: 100 Hz can sharply increase FIFO wakeups and active duty cycle.</div>
-            ) : null}
-            {config.max_payload_bytes && payloadBytes > config.max_payload_bytes ? (
-              <div className="notice">Payload exceeds max payload bytes constraint.</div>
-            ) : null}
-          </div>
+          <section className="card collapsible" style={{ marginBottom: "1rem" }}>
+            <details open>
+              <summary><span className="section-title">Quick setup</span></summary>
+              <div className="collapsible-content">
+                <ExampleConfigSelect onApply={setConfig} current={config} />
+                {config.lis.odr_hz >= 100 ? (
+                  <div className="notice">High detail profile: 100 Hz can sharply increase FIFO wakeups and active duty cycle.</div>
+                ) : null}
+                {config.max_payload_bytes && payloadBytes > config.max_payload_bytes ? (
+                  <div className="notice">Payload exceeds max payload bytes constraint.</div>
+                ) : null}
+              </div>
+            </details>
+          </section>
 
           <DeviceConstraintsSection config={config} onChange={setConfig} />
           <LisSection config={config} onChange={setConfig} />
@@ -88,17 +93,21 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
           <SmartSamplingSection config={config} onChange={setConfig} />
           <PayloadPreview config={config} />
 
-          <section className="assumptions">
-            <h2 style={{ marginTop: 0 }}>Assumptions</h2>
-            <ul>
-              <li>nRF sleep 1.5 uA, active 4 mA, FIFO service 2 ms, finalize 10 ms.</li>
-              <li>Default battery preset: Saft LS14250 (1/2 AA), 1 cell, 1.2Ah, 3.6V nominal.</li>
-              <li>Flash options: 128 megabit (16 MiB) or 256 megabit (32 MiB).</li>
-              <li>LIS2DW12 LP1 low-noise-off anchor table with linear interpolation between ODR points.</li>
-              <li>FIFO depth fixed at 32 samples.</li>
-              <li>Default report interval: 300 s (5 minutes).</li>
-              <li>Smart sampling filters stored windows only; accelerometer sampling/FIFO behavior is unchanged.</li>
-            </ul>
+          <section className="assumptions collapsible">
+            <details>
+              <summary><span className="section-title">Assumptions</span></summary>
+              <div className="collapsible-content">
+                <ul>
+                  <li>nRF sleep 1.5 uA, active 4 mA, FIFO service 2 ms, finalize 10 ms.</li>
+                  <li>Default battery preset: Saft LS14250 (1/2 AA), 1 cell, 1.2Ah, 3.6V nominal.</li>
+                  <li>Flash options: 128 megabit (16 MiB) or 256 megabit (32 MiB).</li>
+                  <li>LIS2DW12 LP1 low-noise-off anchor table with linear interpolation between ODR points.</li>
+                  <li>FIFO depth fixed at 32 samples.</li>
+                  <li>Default report interval: 300 s (5 minutes).</li>
+                  <li>Smart sampling filters stored windows only; accelerometer sampling/FIFO behavior is unchanged.</li>
+                </ul>
+              </div>
+            </details>
           </section>
         </main>
 

@@ -50,6 +50,7 @@ input {
   padding: 0.45rem 0.6rem;
   font: inherit;
   background: #ffffff;
+  max-width: 100%;
 }
 
 button {
@@ -76,6 +77,40 @@ button.secondary {
   border: 1px solid #dbe4ef;
   border-radius: 0.8rem;
   padding: 1rem;
+}
+
+.collapsible > details > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collapsible > details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible > details > summary::before {
+  content: "▸";
+  color: #0f766e;
+  font-size: 0.9rem;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+.collapsible > details[open] > summary::before {
+  content: "▾";
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.collapsible-content {
+  margin-top: 0.75rem;
 }
 
 .section + .section {
@@ -112,6 +147,59 @@ button.secondary {
   margin-bottom: 0.25rem;
 }
 
+.field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.field-title {
+  font-weight: 600;
+  min-width: 0;
+}
+
+.info-toggle {
+  width: 1.4rem;
+  height: 1.4rem;
+  min-width: 1.4rem;
+  border-radius: 999px;
+  padding: 0;
+  border: 1px solid #94a3b8;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.info-toggle[aria-expanded="true"] {
+  background: #e2e8f0;
+}
+
+.field-meta {
+  margin-top: 0.35rem;
+}
+
+.field input:not([type="checkbox"]):not([type="radio"]),
+.field select {
+  width: 100%;
+  min-width: 0;
+}
+
+.field input[type="checkbox"],
+.field input[type="radio"] {
+  width: auto;
+}
+
+.field .button-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-weight: 500;
+}
+
 .help {
   font-size: 0.82rem;
   color: #334155;
@@ -139,6 +227,9 @@ button.secondary {
   position: sticky;
   top: 0.75rem;
   align-self: start;
+  max-height: calc(100vh - 1.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .metric {
@@ -147,6 +238,10 @@ button.secondary {
   border-bottom: 1px solid #e2e8f0;
   padding: 0.3rem 0;
   gap: 1rem;
+}
+
+.metric span {
+  min-width: 0;
 }
 
 .metric strong {
@@ -184,6 +279,14 @@ button.secondary {
   border-radius: 0.7rem;
 }
 
+main {
+  min-width: 0;
+}
+
+.card {
+  min-width: 0;
+}
+
 @media (max-width: 1050px) {
   .layout {
     grid-template-columns: 1fr;
@@ -191,5 +294,42 @@ button.secondary {
 
   .results-panel {
     position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 860px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 0.6rem;
+  }
+
+  .card {
+    padding: 0.75rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .button-row {
+    gap: 0.4rem;
   }
 }

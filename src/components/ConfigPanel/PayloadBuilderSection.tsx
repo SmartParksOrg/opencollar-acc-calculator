@@ -52,13 +52,15 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
   const remaining = max > 0 ? max - payloadBytes : undefined;
 
   return (
-    <section className="section card">
-      <h2>4. Motion statistics payload builder</h2>
-      <p className="help">
+    <section className="section card collapsible">
+      <details open>
+        <summary><span className="section-title">4. Motion statistics payload builder</span></summary>
+        <div className="collapsible-content">
+          <p className="help">
         ODBA/VeDBA dynamic vs raw: dynamic removes gravity; raw mixes posture and motion.
-      </p>
+          </p>
 
-      <div className="grid-2" style={{ marginBottom: "0.75rem" }}>
+          <div className="grid-2" style={{ marginBottom: "0.75rem" }}>
         <div className="field">
           <label>Payload size</label>
           <div><strong>{payloadBytes} bytes</strong></div>
@@ -150,9 +152,9 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
             <li>Data quality: changes false-positive/false-negative flag behavior</li>
           </ul>
         </div>
-      </div>
+          </div>
 
-      <table className="table">
+          <table className="table">
         <thead>
           <tr>
             <th>Include</th>
@@ -182,7 +184,9 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
             );
           })}
         </tbody>
-      </table>
+          </table>
+        </div>
+      </details>
     </section>
   );
 }

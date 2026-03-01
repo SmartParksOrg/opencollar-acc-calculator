@@ -14,9 +14,11 @@ export function NrfSection({ config, onChange }: Props): JSX.Element {
   };
 
   return (
-    <section className="section card">
-      <h2>3. nRF52 wake/read/compute parameters</h2>
-      <div className="grid-2">
+    <section className="section card collapsible">
+      <details open>
+        <summary><span className="section-title">3. nRF52 wake/read/compute parameters</span></summary>
+        <div className="collapsible-content">
+          <div className="grid-2">
         <FieldCard
           label="Sleep current (uA)"
           help="System ON baseline current when not actively servicing FIFO or finalizing report."
@@ -186,7 +188,9 @@ export function NrfSection({ config, onChange }: Props): JSX.Element {
             onChange={(e) => patch((c) => { c.flash.erase_interval_records = Number(e.target.value); })}
           />
         </FieldCard>
-      </div>
+          </div>
+        </div>
+      </details>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 type FieldCardProps = {
   label: string;
@@ -8,17 +8,34 @@ type FieldCardProps = {
 };
 
 export function FieldCard({ label, help, impacts, children }: FieldCardProps): JSX.Element {
+  const [showInfo, setShowInfo] = useState(false);
+
   return (
     <div className="field">
-      <label title={help}>{label}</label>
+      <div className="field-header">
+        <span className="field-title">{label}</span>
+        <button
+          type="button"
+          className="info-toggle"
+          aria-label={`Show info for ${label}`}
+          aria-expanded={showInfo}
+          onClick={() => setShowInfo((value) => !value)}
+        >
+          i
+        </button>
+      </div>
       {children}
-      <p className="help">{help}</p>
-      <ul className="impact">
-        <li>Power: {impacts[0]}</li>
-        <li>Runtime: {impacts[1]}</li>
-        <li>Storage: {impacts[2]}</li>
-        <li>Data quality: {impacts[3]}</li>
-      </ul>
+      {showInfo ? (
+        <div className="field-meta">
+          <p className="help">{help}</p>
+          <ul className="impact">
+            <li>Power: {impacts[0]}</li>
+            <li>Runtime: {impacts[1]}</li>
+            <li>Storage: {impacts[2]}</li>
+            <li>Data quality: {impacts[3]}</li>
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }
