@@ -1,86 +1,65 @@
-# OpenCollar ACC Storage Calculator
+# OpenCollar ACC Calculator
 
-A static, client-side tool to estimate flash/storage impact for accelerometer burst configurations where **1 burst = 1 message**. Designed for GitHub Pages deployment from `/docs`.
+Static React + TypeScript + Vite web app for simulating an nRF52 + LIS2DW12 motion summary pipeline:
+- LIS2DW12 sampling and FIFO wake behavior
+- nRF52 active/sleep duty-cycle model
+- Optional flash write/erase amortized current model
+- Payload field builder with byte layout preview
+- Runtime and storage projection outputs
 
-## Variables
+## Why this exists
 
-Inputs:
+This tool helps estimate tradeoffs between motion fidelity and power budget before firmware implementation.
 
-- `fs` Sampling frequency per axis (Hz)
-- `L` Burst length (s)
-- `I` Burst interval (s between burst starts)
-- `A` Axes enabled (1, 2, 3)
-- `b` Bits per sample (12 or 16)
-- `C` Compression factor (>= 1)
-- `S` Smart sampling factor (0..1)
-- `Flash_MiB` Flash size (MB, calculated as MiB)
-- `U` Usable flash percentage (0..100)
-- `D` Budget horizon in days
+## Assumptions and defaults
 
-Protocol (fixed, stored in flash):
+- Default battery preset: `1x Saft LS14250` (`1.2 Ah`, `3.6 V`)
+- Flash storage options: `128 megabit (16 MiB)` or `256 megabit (32 MiB)`
+- nRF52 defaults: sleep `1.5 uA`, active `4.0 mA`, FIFO service `2 ms`, finalize `10 ms`
+- LIS2DW12 current model defaults to LP1 + low-noise-off anchor table with linear interpolation:
+  - 1.6 Hz: 0.38 uA
+  - 12.5 Hz: 1.0 uA
+  - 25 Hz: 1.5 uA
+  - 50 Hz: 3.0 uA
+  - 100 Hz: 5.0 uA
+- FIFO depth fixed at 32 samples
+- Report interval default `300 s`
 
-- Payload = `Port(1B) + Msg ID(1B) + Length(2B) + Data`
-- `Port = 25`, `Msg ID = 1` (ACC burst)
-- `Length` is data length only (2 bytes)
-- `Data = Timestamp(4B, uint32 seconds since Unix epoch) + Metadata + Samples`
-- Metadata = `fs(2B) + samples_per_axis(2B) + axes_mask(1B) + bits(1B) + part_index(1B) + part_count(1B)`
-- Bursts are stored as a single payload in flash (no splitting at storage time).
+## Where formulas live
 
-## Formulas (MB shown as MiB = 1024 * 1024)
+- Power and runtime formulas: `src/calcs/power.ts`
+- Flash/storage formulas: `src/calcs/storage.ts`
+- Payload field definitions, byte sizing, and preview encoding: `src/calcs/payload.ts`
 
-Per message:
-
-- `N_axis = fs * L`
-- `N_total = fs * L * A`
-- `bits_per_sample = b`
-- `B_samples = ceil((fs * L * A * bits_per_sample) / 8)`
-- `B_data_header = 16`
-- `B_data = B_data_header + B_samples`
-- `B_payload_total = 3 + B_data` (single burst, unsplit)
-- `B_msg = B_payload_total / C`
-
-Per day:
-
-- `M_day = 86400 / I` (bursts/day planned)
-- `bursts_day_eff = M_day * S`
-- `B_day = B_msg * bursts_day_eff`
-
-Transfer planning:
-
-- LoRaWAN payload limit (SF7BW250): 222 bytes
-- Estimated packets to transfer a stored burst: `ceil(B_payload_total / max_payload_bytes)`
-- `MiB_day = B_day / (1024*1024)` (displayed as MB/day)
-
-Flash:
-
-- `Flash_MiB_usable = Flash_MiB * (U/100)`
-- `Days_full = Flash_MiB_usable / MiB_day`
-- `MiB_used = MiB_day * D`
-- `MiB_remaining = Flash_MiB_usable - MiB_used`
-
-Status:
-
-- Show “FITS” if `MiB_remaining >= 0`, else “DOES NOT FIT”.
-
-## Run locally
-
-Open `docs/index.html` directly in a browser, or run a static server:
+## Development
 
 ```bash
-python3 -m http.server --directory docs 8000
+npm ci
+npm run dev
 ```
 
-Then visit `http://localhost:8000`.
+Run tests:
 
-## GitHub Pages setup
+```bash
+npm test
+```
 
-1. Settings → Pages
-2. Source: “Deploy from a branch”
-3. Branch: `main`
-4. Folder: `/docs`
-5. Save
+Build production bundle:
 
-## Notes
+```bash
+npm run build
+npm run preview
+```
 
-- Everything runs client-side with no dependencies.
-- Scenarios are stored in `localStorage`.
+## GitHub Pages
+
+The repo is configured for GitHub Pages deployment using `.github/workflows/deploy.yml`.
+
+- Build: `npm ci && npm run build`
+- Publish: `dist/` via `actions/deploy-pages`
+- Vite base path: `/opencollar-acc-calculator/`
+
+## Shareable configs
+
+- `Copy configuration` copies full JSON config.
+- `Share link` writes a URL hash (`#cfg=<base64-json>`) for reproducible state.
