@@ -21,12 +21,16 @@ type Props = {
 
 export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props): JSX.Element {
   const payloadBytes = useMemo(() => calculatePayloadBytes(config.payload.included_fields), [config.payload.included_fields]);
+  const effectiveBatteryCapacity_mAh = useMemo(
+    () => config.battery.capacity_mAh * Math.max(1, config.battery.cell_count),
+    [config.battery.capacity_mAh, config.battery.cell_count]
+  );
 
   const power = useMemo(() => calculatePowerBreakdown(config), [config]);
 
   const runtime = useMemo(
-    () => calculateRuntimeHours(config.battery.capacity_mAh, config.battery.usable_fraction, power.total_uA),
-    [config.battery.capacity_mAh, config.battery.usable_fraction, power.total_uA]
+    () => calculateRuntimeHours(effectiveBatteryCapacity_mAh, config.battery.usable_fraction, power.total_uA),
+    [effectiveBatteryCapacity_mAh, config.battery.usable_fraction, power.total_uA]
   );
 
   const storage = useMemo(
@@ -36,7 +40,7 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
 
   const runtimeBest = config.uncertainty.enabled
     ? calculateRuntimeHours(
-        config.battery.capacity_mAh,
+        effectiveBatteryCapacity_mAh,
         config.battery.usable_fraction,
         power.total_uA * config.uncertainty.best_case_factor
       )
@@ -44,7 +48,7 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
 
   const runtimeWorst = config.uncertainty.enabled
     ? calculateRuntimeHours(
-        config.battery.capacity_mAh,
+        effectiveBatteryCapacity_mAh,
         config.battery.usable_fraction,
         power.total_uA * config.uncertainty.worst_case_factor
       )
@@ -88,7 +92,7 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
             <h2 style={{ marginTop: 0 }}>Assumptions</h2>
             <ul>
               <li>nRF sleep 1.5 uA, active 4 mA, FIFO service 2 ms, finalize 10 ms.</li>
-              <li>Default battery preset: 1x Saft LS14250 (1.2Ah, 3.6V).</li>
+              <li>Default battery preset: Saft LS14250 (1/2 AA), 1 cell, 1.2Ah, 3.6V nominal.</li>
               <li>Flash options: 128 megabit (16 MiB) or 256 megabit (32 MiB).</li>
               <li>LIS2DW12 LP1 low-noise-off anchor table with linear interpolation between ODR points.</li>
               <li>FIFO depth fixed at 32 samples.</li>

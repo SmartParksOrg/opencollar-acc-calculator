@@ -2,6 +2,7 @@ export type Battery = {
   capacity_mAh: number;
   nominal_V: number;
   usable_fraction: number;
+  cell_count: number;
 };
 
 export type Storage = {
@@ -176,9 +177,45 @@ export const DEFAULT_FIELDS: StatField[] = [
 
 export const BATTERY_PRESETS: BatteryPreset[] = [
   {
-    id: "saft_ls14250_single",
-    label: "1x Saft LS14250 (1.2Ah, 3.6V)",
+    id: "saft_ls14250",
+    label: "Saft LS14250 (1/2 AA, 1.2Ah, 3.6V)",
     capacity_mAh: 1200,
+    nominal_V: 3.6
+  },
+  {
+    id: "saft_ls14500",
+    label: "Saft LS14500 (AA, 2.6Ah, 3.6V)",
+    capacity_mAh: 2600,
+    nominal_V: 3.6
+  },
+  {
+    id: "saft_ls17330",
+    label: "Saft LS17330 (2/3 A, 2.1Ah, 3.6V)",
+    capacity_mAh: 2100,
+    nominal_V: 3.6
+  },
+  {
+    id: "saft_ls17550",
+    label: "Saft LS17550 (A, 3.6Ah, 3.6V)",
+    capacity_mAh: 3600,
+    nominal_V: 3.6
+  },
+  {
+    id: "saft_ls26500plus",
+    label: "Saft LS26500Plus (C, 8.5Ah, 3.6V)",
+    capacity_mAh: 8500,
+    nominal_V: 3.6
+  },
+  {
+    id: "saft_ls33600",
+    label: "Saft LS33600 (D, 17.0Ah, 3.6V)",
+    capacity_mAh: 17000,
+    nominal_V: 3.6
+  },
+  {
+    id: "samsung_inr18650_35e",
+    label: "Samsung INR18650-35E (Li-ion 18650, 3.4Ah, 3.6V)",
+    capacity_mAh: 3400,
     nominal_V: 3.6
   }
 ];
@@ -202,7 +239,8 @@ export const defaultConfig: AppConfig = {
   battery: {
     capacity_mAh: BATTERY_PRESETS[0].capacity_mAh,
     nominal_V: BATTERY_PRESETS[0].nominal_V,
-    usable_fraction: 0.85
+    usable_fraction: 0.85,
+    cell_count: 1
   },
   storage: {
     flash_bytes_available: FLASH_OPTIONS[0].bytes

@@ -59,7 +59,7 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
 
         <FieldCard
           label="Battery capacity (mAh)"
-          help="Nominal battery capacity. Runtime uses usable fraction below, not full nameplate capacity."
+          help="Nominal per-cell battery capacity. Runtime uses capacity x number of cells x usable fraction."
           impacts={[
             "No direct current change",
             "Higher capacity extends runtime linearly",
@@ -73,6 +73,28 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
             value={config.battery.capacity_mAh}
             onChange={(e) => patch((c) => { c.battery.capacity_mAh = Number(e.target.value); })}
           />
+        </FieldCard>
+
+        <FieldCard
+          label="Number of batteries"
+          help="Assumes identical cells in parallel. Effective capacity scales linearly with this value; nominal voltage stays unchanged."
+          impacts={[
+            "No direct current change",
+            "Higher count extends runtime linearly",
+            "No effect",
+            "No effect"
+          ]}
+        >
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={config.battery.cell_count}
+            onChange={(e) => patch((c) => { c.battery.cell_count = Math.max(1, Math.floor(Number(e.target.value) || 1)); })}
+          />
+          <p className="help" style={{ marginBottom: 0 }}>
+            Effective capacity: {(config.battery.capacity_mAh * Math.max(1, config.battery.cell_count)).toLocaleString()} mAh
+          </p>
         </FieldCard>
 
         <FieldCard
