@@ -1,5 +1,6 @@
 import type { AppConfig, StatField } from "../../models/config";
 import { getFieldDef } from "../../calcs/payload";
+import { FieldCard } from "./FieldCard";
 
 type Props = {
   config: AppConfig;
@@ -61,57 +62,68 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
           </p>
 
           <div className="grid-2" style={{ marginBottom: "0.75rem" }}>
-        <div className="field">
+        <div className="field" style={{ gridColumn: "1 / -1" }}>
           <label>Payload size</label>
           <div><strong>{payloadBytes} bytes</strong></div>
           {max > 0 ? <div className="small">Remaining vs max: {remaining} bytes</div> : <div className="small">No max payload cap set</div>}
         </div>
 
-        <div className="field">
-          <label>ODBA / VeDBA and gravity settings</label>
-          <div className="grid-2">
-            <select
-              value={config.payload.odba_definition}
-              onChange={(e) => patch((c) => { c.payload.odba_definition = e.target.value as AppConfig["payload"]["odba_definition"]; })}
-            >
-              <option value="abs_sum_dynamic">ODBA: abs_sum_dynamic</option>
-              <option value="abs_sum_raw">ODBA: abs_sum_raw</option>
-            </select>
-            <select
-              value={config.payload.vedba_definition}
-              onChange={(e) => patch((c) => { c.payload.vedba_definition = e.target.value as AppConfig["payload"]["vedba_definition"]; })}
-            >
-              <option value="rss_dynamic">VeDBA: rss_dynamic</option>
-              <option value="rss_raw">VeDBA: rss_raw</option>
-              <option value="rss2_dynamic">VeDBA: rss2_dynamic</option>
-            </select>
-            <select
-              value={config.payload.gravity_removal}
-              onChange={(e) => patch((c) => { c.payload.gravity_removal = e.target.value as AppConfig["payload"]["gravity_removal"]; })}
-            >
-              <option value="iir_lp">Gravity removal: iir_lp</option>
-              <option value="window_mean">Gravity removal: window_mean</option>
-            </select>
-            <input
-              type="number"
-              step="0.001"
-              min={0.001}
-              max={1}
-              value={config.payload.iir_alpha}
-              onChange={(e) => patch((c) => { c.payload.iir_alpha = Number(e.target.value); })}
-            />
-          </div>
-          <p className="help">IIR alpha controls dynamic baseline time constant; lower alpha tracks gravity more slowly.</p>
-          <ul className="impact">
-            <li>Power: negligible effect (algorithmic detail only in this model)</li>
-            <li>Runtime: negligible direct effect</li>
-            <li>Storage: no size effect unless fields are toggled</li>
-            <li>Data quality: strongly affects motion/posture separation</li>
-          </ul>
+        <div style={{ gridColumn: "1 / -1" }}>
+          <FieldCard
+            label="ODBA / VeDBA and gravity settings"
+            help="ODBA/VeDBA dynamic vs raw: dynamic removes gravity; raw mixes posture and motion. IIR alpha controls dynamic baseline time constant; lower alpha tracks gravity more slowly."
+            impacts={[
+              "Negligible effect (algorithmic detail only in this model)",
+              "Negligible direct effect",
+              "No size effect unless fields are toggled",
+              "Strongly affects motion/posture separation"
+            ]}
+          >
+            <div className="grid-2">
+              <select
+                value={config.payload.odba_definition}
+                onChange={(e) => patch((c) => { c.payload.odba_definition = e.target.value as AppConfig["payload"]["odba_definition"]; })}
+              >
+                <option value="abs_sum_dynamic">ODBA: abs_sum_dynamic</option>
+                <option value="abs_sum_raw">ODBA: abs_sum_raw</option>
+              </select>
+              <select
+                value={config.payload.vedba_definition}
+                onChange={(e) => patch((c) => { c.payload.vedba_definition = e.target.value as AppConfig["payload"]["vedba_definition"]; })}
+              >
+                <option value="rss_dynamic">VeDBA: rss_dynamic</option>
+                <option value="rss_raw">VeDBA: rss_raw</option>
+                <option value="rss2_dynamic">VeDBA: rss2_dynamic</option>
+              </select>
+              <select
+                value={config.payload.gravity_removal}
+                onChange={(e) => patch((c) => { c.payload.gravity_removal = e.target.value as AppConfig["payload"]["gravity_removal"]; })}
+              >
+                <option value="iir_lp">Gravity removal: iir_lp</option>
+                <option value="window_mean">Gravity removal: window_mean</option>
+              </select>
+              <input
+                type="number"
+                step="0.001"
+                min={0.001}
+                max={1}
+                value={config.payload.iir_alpha}
+                onChange={(e) => patch((c) => { c.payload.iir_alpha = Number(e.target.value); })}
+              />
+            </div>
+          </FieldCard>
         </div>
 
-        <div className="field">
-          <label>Mean/StdDev frame</label>
+        <FieldCard
+          label="Mean/StdDev frame"
+          help="Choose whether mean/std fields are derived from dynamic acceleration or raw acceleration."
+          impacts={[
+            "No direct effect in this model",
+            "No direct effect",
+            "No byte change",
+            "Changes interpretation for posture vs activity"
+          ]}
+        >
           <select
             value={config.payload.mean_std_frame}
             onChange={(e) => patch((c) => { c.payload.mean_std_frame = e.target.value as AppConfig["payload"]["mean_std_frame"]; })}
@@ -119,40 +131,42 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
             <option value="dynamic">dynamic</option>
             <option value="raw">raw</option>
           </select>
-          <p className="help">Choose whether mean/std fields are derived from dynamic acceleration or raw acceleration.</p>
-          <ul className="impact">
-            <li>Power: no direct effect in this model</li>
-            <li>Runtime: no direct effect</li>
-            <li>Storage: no byte change</li>
-            <li>Data quality: changes interpretation for posture vs activity</li>
-          </ul>
-        </div>
+        </FieldCard>
 
-        <div className="field">
-          <label>Activity flag thresholds</label>
+        <FieldCard
+          label="Activity flag thresholds"
+          help="Thresholds used if activity flags depend on ODBA mean and stillness STD criteria."
+          impacts={[
+            "No direct effect",
+            "No direct effect",
+            "No byte change",
+            "Changes false-positive/false-negative flag behavior"
+          ]}
+        >
           <div className="grid-2">
-            <input
-              type="number"
-              min={0}
-              value={config.payload.activity_thresholds.odba_mean_mg}
-              onChange={(e) => patch((c) => { c.payload.activity_thresholds.odba_mean_mg = Number(e.target.value); })}
-            />
-            <input
-              type="number"
-              min={0}
-              value={config.payload.activity_thresholds.stillness_std_mg}
-              onChange={(e) => patch((c) => { c.payload.activity_thresholds.stillness_std_mg = Number(e.target.value); })}
-            />
+            <div>
+              <label>ODBA mean threshold (mg)</label>
+              <input
+                type="number"
+                min={0}
+                value={config.payload.activity_thresholds.odba_mean_mg}
+                onChange={(e) => patch((c) => { c.payload.activity_thresholds.odba_mean_mg = Number(e.target.value); })}
+              />
+              <p className="small" style={{ marginBottom: 0 }}>Above this value, a window is considered active.</p>
+            </div>
+            <div>
+              <label>Stillness STD threshold (mg)</label>
+              <input
+                type="number"
+                min={0}
+                value={config.payload.activity_thresholds.stillness_std_mg}
+                onChange={(e) => patch((c) => { c.payload.activity_thresholds.stillness_std_mg = Number(e.target.value); })}
+              />
+              <p className="small" style={{ marginBottom: 0 }}>Below this value, a window is considered still.</p>
+            </div>
           </div>
-          <p className="help">Thresholds used if activity flags depend on ODBA mean and stillness STD criteria.</p>
-          <ul className="impact">
-            <li>Power: no direct effect</li>
-            <li>Runtime: no direct effect</li>
-            <li>Storage: no byte change</li>
-            <li>Data quality: changes false-positive/false-negative flag behavior</li>
-          </ul>
-        </div>
-          </div>
+        </FieldCard>
+      </div>
 
           <table className="table">
         <thead>

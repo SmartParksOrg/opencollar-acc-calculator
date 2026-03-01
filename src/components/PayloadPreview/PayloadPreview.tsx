@@ -8,12 +8,14 @@ type Props = {
 export function PayloadPreview({ config }: Props): JSX.Element {
   const layout = buildPayloadLayout(config.payload.included_fields);
   const example = buildExamplePayload(config.payload.included_fields, config);
+  const payloadBytes = layout.reduce((sum, row) => sum + row.field.bytes, 0);
 
   return (
     <section className="card collapsible" style={{ marginTop: "1rem" }}>
       <details open>
         <summary><span className="section-title">Payload preview</span></summary>
         <div className="collapsible-content">
+          <p className="small"><strong>Payload size:</strong> {payloadBytes} bytes</p>
           <table className="table">
         <thead>
           <tr>

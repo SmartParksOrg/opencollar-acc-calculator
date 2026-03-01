@@ -159,35 +159,38 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
         </FieldCard>
           </div>
 
-          <div className="field" style={{ marginTop: "0.75rem" }}>
-        <label>Threshold mode</label>
-        <p className="help">What is this? Sets whether thresholds are disabled, fixed in mg, or auto percentile based.</p>
-        <div className="button-row">
-          <label><input
-            type="radio"
-            name="threshold-mode"
-            checked={config.smartSampling.threshold_mode === "off"}
-            onChange={() => patch((c) => { c.smartSampling.threshold_mode = "off"; })}
-          /> Off</label>
-          <label><input
-            type="radio"
-            name="threshold-mode"
-            checked={config.smartSampling.threshold_mode === "auto_percentile"}
-            onChange={() => patch((c) => { c.smartSampling.threshold_mode = "auto_percentile"; })}
-          /> Auto (percentiles)</label>
-          <label><input
-            type="radio"
-            name="threshold-mode"
-            checked={config.smartSampling.threshold_mode === "manual"}
-            onChange={() => patch((c) => { c.smartSampling.threshold_mode = "manual"; })}
-          /> Manual (mg)</label>
-        </div>
-        <ul className="impact">
-          <li>Power: Off can increase flash write current by storing all windows.</li>
-          <li>Runtime: Better filtering usually improves runtime through lower flash duty.</li>
-          <li>Storage: Auto and manual can reduce bytes/day relative to off.</li>
-          <li>Data quality: Auto adapts across species using calibration percentiles.</li>
-        </ul>
+          <div style={{ marginTop: "0.75rem" }}>
+            <FieldCard
+              label="Threshold mode"
+              help="What is this? Sets whether thresholds are disabled, fixed in mg, or auto percentile based."
+              impacts={[
+                "Off can increase flash write current by storing all windows",
+                "Better filtering usually improves runtime through lower flash duty",
+                "Auto and manual can reduce bytes/day relative to off",
+                "Auto adapts across species using calibration percentiles"
+              ]}
+            >
+              <div className="button-row">
+                <label><input
+                  type="radio"
+                  name="threshold-mode"
+                  checked={config.smartSampling.threshold_mode === "off"}
+                  onChange={() => patch((c) => { c.smartSampling.threshold_mode = "off"; })}
+                /> Off</label>
+                <label><input
+                  type="radio"
+                  name="threshold-mode"
+                  checked={config.smartSampling.threshold_mode === "auto_percentile"}
+                  onChange={() => patch((c) => { c.smartSampling.threshold_mode = "auto_percentile"; })}
+                /> Auto (percentiles)</label>
+                <label><input
+                  type="radio"
+                  name="threshold-mode"
+                  checked={config.smartSampling.threshold_mode === "manual"}
+                  onChange={() => patch((c) => { c.smartSampling.threshold_mode = "manual"; })}
+                /> Manual (mg)</label>
+              </div>
+            </FieldCard>
           </div>
 
           {showAuto ? (

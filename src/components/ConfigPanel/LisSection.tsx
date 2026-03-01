@@ -14,7 +14,7 @@ export function LisSection({ config, onChange }: Props): JSX.Element {
     onChange(next);
   };
 
-  const usingCustomOdr = !ODR_CHOICES.includes(config.lis.odr_hz);
+  const usingCustomOdr = config.lis.odr_source === "custom" || !ODR_CHOICES.includes(config.lis.odr_hz);
 
   return (
     <section className="section card collapsible">
@@ -38,7 +38,10 @@ export function LisSection({ config, onChange }: Props): JSX.Element {
               onChange={(e) => {
                 const v = e.target.value;
                 patch((c) => {
-                  if (v !== "custom") {
+                  if (v === "custom") {
+                    c.lis.odr_source = "custom";
+                  } else {
+                    c.lis.odr_source = "preset";
                     c.lis.odr_hz = Number(v);
                   }
                 });
@@ -51,13 +54,18 @@ export function LisSection({ config, onChange }: Props): JSX.Element {
               ))}
               <option value="custom">Custom</option>
             </select>
-            <input
-              type="number"
-              step="0.1"
-              min={0.1}
-              value={config.lis.odr_hz}
-              onChange={(e) => patch((c) => { c.lis.odr_hz = Number(e.target.value); })}
-            />
+            {usingCustomOdr ? (
+              <input
+                type="number"
+                step="0.1"
+                min={0.1}
+                value={config.lis.odr_hz}
+                onChange={(e) => patch((c) => {
+                  c.lis.odr_source = "custom";
+                  c.lis.odr_hz = Number(e.target.value);
+                })}
+              />
+            ) : null}
           </div>
         </FieldCard>
 

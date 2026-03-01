@@ -12,12 +12,13 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
     path(next);
     onChange(next);
   };
-  const selectedBatteryPreset =
-    BATTERY_PRESETS.find(
+  const selectedBatteryPreset = config.battery.preset_id
+    ?? BATTERY_PRESETS.find(
       (preset) =>
         preset.capacity_mAh === config.battery.capacity_mAh &&
         preset.nominal_V === config.battery.nominal_V
-    )?.id ?? "custom";
+    )?.id
+    ?? "custom";
   const selectedFlashBytes = FLASH_OPTIONS.some((option) => option.bytes === config.storage.flash_bytes_available)
     ? config.storage.flash_bytes_available
     : FLASH_OPTIONS[0].bytes;
@@ -44,8 +45,11 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
               patch((c) => {
                 const preset = BATTERY_PRESETS.find((item) => item.id === e.target.value);
                 if (preset) {
+                  c.battery.preset_id = preset.id;
                   c.battery.capacity_mAh = preset.capacity_mAh;
                   c.battery.nominal_V = preset.nominal_V;
+                } else {
+                  c.battery.preset_id = "custom";
                 }
               })
             }
@@ -59,23 +63,28 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
           </select>
         </FieldCard>
 
-        <FieldCard
-          label="Battery capacity (mAh)"
-          help="Nominal per-cell battery capacity. Runtime uses capacity x number of cells x usable fraction."
-          impacts={[
-            "No direct current change",
-            "Higher capacity extends runtime linearly",
-            "No effect",
-            "No effect"
-          ]}
-        >
-          <input
-            type="number"
-            min={1}
-            value={config.battery.capacity_mAh}
-            onChange={(e) => patch((c) => { c.battery.capacity_mAh = Number(e.target.value); })}
-          />
-        </FieldCard>
+        {selectedBatteryPreset === "custom" ? (
+          <FieldCard
+            label="Battery capacity (mAh)"
+            help="Nominal per-cell battery capacity. Runtime uses capacity x number of cells x usable fraction."
+            impacts={[
+              "No direct current change",
+              "Higher capacity extends runtime linearly",
+              "No effect",
+              "No effect"
+            ]}
+          >
+            <input
+              type="number"
+              min={1}
+              value={config.battery.capacity_mAh}
+              onChange={(e) => patch((c) => {
+                c.battery.preset_id = "custom";
+                c.battery.capacity_mAh = Number(e.target.value);
+              })}
+            />
+          </FieldCard>
+        ) : null}
 
         <FieldCard
           label="Number of batteries"
@@ -99,27 +108,32 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
           </p>
         </FieldCard>
 
-        <FieldCard
-          label="Nominal battery voltage (V)"
-          help="Used for the optional energy view (average power in uW)."
-          impacts={[
-            "No current impact",
-            "No direct runtime impact",
-            "No effect",
-            "No effect"
-          ]}
-        >
-          <input
-            type="number"
-            step="0.1"
-            min={1}
-            value={config.battery.nominal_V}
-            onChange={(e) => patch((c) => { c.battery.nominal_V = Number(e.target.value); })}
-          />
-        </FieldCard>
+        {selectedBatteryPreset === "custom" ? (
+          <FieldCard
+            label="Nominal battery voltage (V)"
+            help="Used for the optional energy view (average power in uW)."
+            impacts={[
+              "No current impact",
+              "No direct runtime impact",
+              "No effect",
+              "No effect"
+            ]}
+          >
+            <input
+              type="number"
+              step="0.1"
+              min={1}
+              value={config.battery.nominal_V}
+              onChange={(e) => patch((c) => {
+                c.battery.preset_id = "custom";
+                c.battery.nominal_V = Number(e.target.value);
+              })}
+            />
+          </FieldCard>
+        ) : null}
 
         <FieldCard
-          label="Usable battery fraction"
+          label={`Usable battery fraction (${(config.battery.usable_fraction * 100).toFixed(0)}%)`}
           help="Accounts for cutoff voltage, temperature, battery aging, and conservative reserve."
           impacts={[
             "No current impact",
@@ -129,12 +143,12 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
           ]}
         >
           <input
-            type="number"
-            step="0.01"
-            min={0.1}
-            max={1}
-            value={config.battery.usable_fraction}
-            onChange={(e) => patch((c) => { c.battery.usable_fraction = Number(e.target.value); })}
+            type="range"
+            min={10}
+            max={100}
+            step={1}
+            value={Math.round(config.battery.usable_fraction * 100)}
+            onChange={(e) => patch((c) => { c.battery.usable_fraction = Number(e.target.value) / 100; })}
           />
         </FieldCard>
 

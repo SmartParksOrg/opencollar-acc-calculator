@@ -1,4 +1,5 @@
 export type Battery = {
+  preset_id?: string;
   capacity_mAh: number;
   nominal_V: number;
   usable_fraction: number;
@@ -15,6 +16,7 @@ export type Lis2dw12Fs = 2 | 4 | 8 | 16;
 
 export type Lis2dw12Config = {
   odr_hz: number;
+  odr_source?: "preset" | "custom";
   mode: Lis2dw12Mode;
   noise: Lis2dw12Noise;
   fs_g: Lis2dw12Fs;
@@ -214,7 +216,7 @@ export const BATTERY_PRESETS: BatteryPreset[] = [
   },
   {
     id: "samsung_inr18650_35e",
-    label: "Samsung INR18650-35E (Li-ion 18650, 3.4Ah, 3.6V)",
+    label: "Li-ion 18650 (3.4Ah, 3.6V)",
     capacity_mAh: 3400,
     nominal_V: 3.6
   }
@@ -237,6 +239,7 @@ export const FLASH_OPTIONS: FlashOption[] = [
 
 export const defaultConfig: AppConfig = {
   battery: {
+    preset_id: BATTERY_PRESETS[0].id,
     capacity_mAh: BATTERY_PRESETS[0].capacity_mAh,
     nominal_V: BATTERY_PRESETS[0].nominal_V,
     usable_fraction: 0.85,
@@ -247,11 +250,12 @@ export const defaultConfig: AppConfig = {
   },
   lis: {
     odr_hz: 25,
+    odr_source: "preset",
     mode: "LP1",
     noise: "low_noise_off",
-    fs_g: 2,
+    fs_g: 4,
     fifo_watermark: 32,
-    fifo_mode: "fifo"
+    fifo_mode: "continuous"
   },
   nrf52: {
     sleep_current_uA: 1.5,
@@ -260,7 +264,7 @@ export const defaultConfig: AppConfig = {
     finalize_time_ms: 10
   },
   flash: {
-    enabled: false,
+    enabled: true,
     write_current_mA: 4,
     write_time_ms: 5,
     erase_current_mA: 4,
@@ -269,7 +273,7 @@ export const defaultConfig: AppConfig = {
   },
   report: {
     interval_seconds: 300,
-    store_to_flash: false
+    store_to_flash: true
   },
   payload: {
     included_fields: DEFAULT_FIELDS,

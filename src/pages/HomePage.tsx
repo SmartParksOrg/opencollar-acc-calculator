@@ -71,7 +71,28 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
 
       <div className="layout">
         <main>
-          <section className="card collapsible" style={{ marginBottom: "1rem" }}>
+          <section className="assumptions collapsible">
+            <details>
+              <summary><span className="section-title">Assumptions</span></summary>
+              <div className="collapsible-content">
+                <ul>
+                  <li>nRF sleep 1.5 uA, active 4 mA, FIFO service 2 ms, finalize 10 ms.</li>
+                  <li>Battery presets include Saft LS series and Li-ion 18650; runtime uses per-cell capacity x cell count x usable fraction.</li>
+                  <li>Cell count assumes identical cells in parallel (capacity scales linearly, nominal voltage unchanged).</li>
+                  <li>Flash options: 128 megabit (16 MiB) or 256 megabit (32 MiB).</li>
+                  <li>Store to flash is enabled by default.</li>
+                  <li>LIS2DW12 LP1 low-noise-off anchor table with linear interpolation between ODR points.</li>
+                  <li>Default LIS settings: ODR 25 Hz, full-scale +/-4 g, FIFO watermark 32, FIFO mode continuous.</li>
+                  <li>FIFO depth fixed at 32 samples.</li>
+                  <li>Default report interval: 300 s (5 minutes).</li>
+                  <li>Smart sampling filters stored windows only; accelerometer sampling/FIFO behavior is unchanged.</li>
+                  <li>Default Smart Sampling mode is auto percentile with baseline trickle enabled.</li>
+                </ul>
+              </div>
+            </details>
+          </section>
+
+          <section className="card collapsible">
             <details open>
               <summary><span className="section-title">Quick setup</span></summary>
               <div className="collapsible-content">
@@ -92,23 +113,6 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
           <PayloadBuilderSection config={config} payloadBytes={payloadBytes} onChange={setConfig} />
           <SmartSamplingSection config={config} onChange={setConfig} />
           <PayloadPreview config={config} />
-
-          <section className="assumptions collapsible">
-            <details>
-              <summary><span className="section-title">Assumptions</span></summary>
-              <div className="collapsible-content">
-                <ul>
-                  <li>nRF sleep 1.5 uA, active 4 mA, FIFO service 2 ms, finalize 10 ms.</li>
-                  <li>Default battery preset: Saft LS14250 (1/2 AA), 1 cell, 1.2Ah, 3.6V nominal.</li>
-                  <li>Flash options: 128 megabit (16 MiB) or 256 megabit (32 MiB).</li>
-                  <li>LIS2DW12 LP1 low-noise-off anchor table with linear interpolation between ODR points.</li>
-                  <li>FIFO depth fixed at 32 samples.</li>
-                  <li>Default report interval: 300 s (5 minutes).</li>
-                  <li>Smart sampling filters stored windows only; accelerometer sampling/FIFO behavior is unchanged.</li>
-                </ul>
-              </div>
-            </details>
-          </section>
         </main>
 
         <ResultsPanel

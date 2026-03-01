@@ -1,4 +1,5 @@
 import type { AppConfig } from "../../models/config";
+import { FieldCard } from "./FieldCard";
 
 type Props = {
   onApply: (config: AppConfig) => void;
@@ -15,6 +16,7 @@ export function ExampleConfigSelect({ onApply, current }: Props): JSX.Element {
 
     if (preset === "ultra") {
       c.lis.odr_hz = 12.5;
+      c.lis.odr_source = "preset";
       c.lis.fifo_watermark = 32;
       c.payload.included_fields = ["timestamp_u32", "odba_mean_i16", "sample_count_u16", "activity_flags_u8"];
       c.report.interval_seconds = 300;
@@ -22,6 +24,7 @@ export function ExampleConfigSelect({ onApply, current }: Props): JSX.Element {
 
     if (preset === "balanced") {
       c.lis.odr_hz = 25;
+      c.lis.odr_source = "preset";
       c.lis.fifo_watermark = 32;
       c.payload.included_fields = [
         "timestamp_u32",
@@ -37,6 +40,7 @@ export function ExampleConfigSelect({ onApply, current }: Props): JSX.Element {
 
     if (preset === "detail") {
       c.lis.odr_hz = 100;
+      c.lis.odr_source = "preset";
       c.lis.fifo_watermark = 16;
       c.payload.included_fields = [
         "timestamp_u32",
@@ -58,8 +62,16 @@ export function ExampleConfigSelect({ onApply, current }: Props): JSX.Element {
   };
 
   return (
-    <div className="field">
-      <label>Example configs</label>
+    <FieldCard
+      label="Example configs"
+      help="Quickly load a baseline setup for comparison."
+      impacts={[
+        "Varies by preset",
+        "Long to short from ultra to detail",
+        "Fewer to more bytes/day",
+        "Coarse to high-detail trend capture"
+      ]}
+    >
       <select defaultValue="" onChange={(e) => apply(e.target.value)}>
         <option value="" disabled>
           Select preset...
@@ -68,13 +80,6 @@ export function ExampleConfigSelect({ onApply, current }: Props): JSX.Element {
         <option value="balanced">Balanced</option>
         <option value="detail">High detail</option>
       </select>
-      <p className="help">Quickly load a baseline setup for comparison.</p>
-      <ul className="impact">
-        <li>Power: varies by preset</li>
-        <li>Runtime: long to short from ultra to detail</li>
-        <li>Storage: fewer to more bytes/day</li>
-        <li>Data quality: coarse to high-detail trend capture</li>
-      </ul>
-    </div>
+    </FieldCard>
   );
 }
