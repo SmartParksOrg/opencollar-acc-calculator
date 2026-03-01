@@ -9,7 +9,6 @@ type Props = {
   runtimeWorst?: RuntimeMetrics;
   storage: StorageMetrics;
   payloadBytes: number;
-  reportIntervalS: number;
 };
 
 function fmt(value: number, digits = 2): string {
@@ -22,9 +21,12 @@ export function ResultsPanel({
   runtimeBest,
   runtimeWorst,
   storage,
-  payloadBytes,
-  reportIntervalS
+  payloadBytes
 }: Props): JSX.Element {
+  const flashFillNotice = Number.isFinite(storage.days_to_fill)
+    ? `Flash fills in ${fmt(storage.days_to_fill, 1)} days.`
+    : "Flash does not fill because bytes/day is zero.";
+
   return (
     <aside className="results-panel card">
       <h2 style={{ marginTop: 0 }}>Results</h2>
@@ -54,12 +56,36 @@ export function ResultsPanel({
         </>
       ) : null}
 
+      <h3>Smart sampling</h3>
+      <div className="metric"><span>Stored windows/day</span><strong>{fmt(storage.stored_windows_per_day, 2)}</strong></div>
+      <div className="metric"><span>Stored fraction</span><strong>{fmt(storage.stored_fraction * 100, 2)}%</strong></div>
+      {storage.episodes_enabled ? (
+        <>
+          <div className="metric">
+            <span>Episode extra windows/day</span>
+            <strong>{fmt(storage.smartSampling.episode_extra_windows_per_day, 2)}</strong>
+          </div>
+          <div className="metric">
+            <span>Episode multiplier</span>
+            <strong>{fmt(storage.smartSampling.episode_multiplier, 3)}x</strong>
+          </div>
+        </>
+      ) : null}
+
       <h3>Flash usage</h3>
       <div className="metric"><span>Bytes per report</span><strong>{payloadBytes}</strong></div>
-      <div className="metric"><span>Messages per day</span><strong>{fmt(86400 / reportIntervalS, 2)}</strong></div>
+      <div className="metric"><span>Windows/day</span><strong>{fmt(storage.windows_per_day, 2)}</strong></div>
+      <div className="metric"><span>Stored windows/day</span><strong>{fmt(storage.stored_windows_per_day, 2)}</strong></div>
       <div className="metric"><span>Bytes per day</span><strong>{fmt(storage.bytes_per_day, 1)}</strong></div>
       <div className="metric"><span>Messages until full</span><strong>{fmt(storage.messages_until_full, 0)}</strong></div>
       <div className="metric"><span>Days until flash full</span><strong>{fmt(storage.days_to_fill, 1)}</strong></div>
+      {storage.smart_sampling_enabled && storage.smartSampling.p_store_adjusted >= 0.95 ? (
+        <div className="notice">Smart sampling provides little benefit at current assumptions (stored fraction near 100%).</div>
+      ) : null}
+      {storage.smart_sampling_enabled && !storage.baseline_keep_enabled ? (
+        <div className="notice">Baseline trickle is off. This may bias time budget inference toward active windows.</div>
+      ) : null}
+      {storage.days_to_fill < 1 ? <div className="notice">{flashFillNotice}</div> : null}
 
       <h3>FIFO behavior</h3>
       <div className="metric"><span>FIFO depth (samples)</span><strong>32</strong></div>

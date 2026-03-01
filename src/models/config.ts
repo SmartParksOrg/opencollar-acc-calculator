@@ -91,6 +91,48 @@ export type RuntimeUncertainty = {
   worst_case_factor: number;
 };
 
+export type SmartSamplingMetric =
+  | "vedba_mean"
+  | "vedba_max"
+  | "odba_mean"
+  | "odba_max"
+  | "peak_acc"
+  | "std_norm";
+
+export type ThresholdMode = "off" | "manual" | "auto_percentile";
+
+export type SmartSamplingAssumptions = {
+  active_percent: number;
+  peak_percent: number;
+  debounce_factor: number;
+  burst_clustering: boolean;
+  avg_bout_len_windows: number;
+};
+
+export type SmartSamplingConfig = {
+  enabled: boolean;
+  metric: SmartSamplingMetric;
+  peak_enabled: boolean;
+  peak_metric: SmartSamplingMetric;
+  threshold_mode: ThresholdMode;
+  enter_threshold_mg: number;
+  exit_threshold_mg: number;
+  peak_threshold_mg: number;
+  calibration_duration_hours: number;
+  enter_percentile: number;
+  exit_percentile: number;
+  peak_percentile: number;
+  consecutive_enter_windows: number;
+  consecutive_exit_windows: number;
+  baseline_keep_enabled: boolean;
+  baseline_keep_1_in_n: number;
+  episodes_enabled: boolean;
+  episode_pre_windows: number;
+  episode_post_windows: number;
+  episode_cooldown_windows: number;
+  assumptions: SmartSamplingAssumptions;
+};
+
 export type AppConfig = {
   battery: Battery;
   storage: Storage;
@@ -99,6 +141,7 @@ export type AppConfig = {
   flash: FlashModel;
   report: ReportConfig;
   payload: PayloadConfig;
+  smartSampling: SmartSamplingConfig;
   max_payload_bytes?: number;
   uncertainty: RuntimeUncertainty;
 };
@@ -207,6 +250,35 @@ export const defaultConfig: AppConfig = {
     activity_thresholds: {
       odba_mean_mg: 200,
       stillness_std_mg: 60
+    }
+  },
+  smartSampling: {
+    enabled: true,
+    metric: "vedba_mean",
+    peak_enabled: true,
+    peak_metric: "vedba_max",
+    threshold_mode: "auto_percentile",
+    enter_threshold_mg: 200,
+    exit_threshold_mg: 150,
+    peak_threshold_mg: 600,
+    calibration_duration_hours: 12,
+    enter_percentile: 95,
+    exit_percentile: 90,
+    peak_percentile: 99,
+    consecutive_enter_windows: 2,
+    consecutive_exit_windows: 2,
+    baseline_keep_enabled: true,
+    baseline_keep_1_in_n: 60,
+    episodes_enabled: false,
+    episode_pre_windows: 1,
+    episode_post_windows: 2,
+    episode_cooldown_windows: 1,
+    assumptions: {
+      active_percent: 5,
+      peak_percent: 1,
+      debounce_factor: 1,
+      burst_clustering: false,
+      avg_bout_len_windows: 6
     }
   },
   max_payload_bytes: 64,

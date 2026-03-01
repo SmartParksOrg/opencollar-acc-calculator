@@ -1,4 +1,5 @@
 import type { AppConfig, Lis2dw12Config } from "../models/config";
+import { calculateSmartSamplingMetrics } from "./smartSampling";
 
 export const FIFO_SAMPLES = 32;
 
@@ -115,6 +116,7 @@ export function calculateFifoMetrics(odr_hz: number, watermark: number): FifoMet
 export function calculatePowerBreakdown(config: AppConfig): PowerBreakdown {
   const lis = estimateLisCurrent(config.lis);
   const fifo = calculateFifoMetrics(config.lis.odr_hz, config.lis.fifo_watermark);
+  const smartSamplingMetrics = calculateSmartSamplingMetrics(config.smartSampling, config.report.interval_seconds);
 
   const duty_fifo = fifo.wakeups_per_second * (config.nrf52.fifo_service_time_ms / 1000);
   const fifo_service_uA = config.nrf52.active_current_mA * 1000 * duty_fifo;
@@ -123,13 +125,14 @@ export function calculatePowerBreakdown(config: AppConfig): PowerBreakdown {
   const finalize_uA = config.nrf52.active_current_mA * 1000 * duty_finalize;
 
   const flashEnabled = config.flash.enabled && config.report.store_to_flash;
+  const stored_windows_per_second = smartSamplingMetrics.stored_windows_per_day / 86400;
   const flash_write_uA = flashEnabled
-    ? config.flash.write_current_mA * 1000 * (config.flash.write_time_ms / 1000) / config.report.interval_seconds
+    ? config.flash.write_current_mA * 1000 * (config.flash.write_time_ms / 1000) * stored_windows_per_second
     : 0;
 
-  const erasePeriodS = config.report.interval_seconds * Math.max(1, config.flash.erase_interval_records);
+  const erase_events_per_second = stored_windows_per_second / Math.max(1, config.flash.erase_interval_records);
   const flash_erase_uA = flashEnabled
-    ? config.flash.erase_current_mA * 1000 * (config.flash.erase_time_ms / 1000) / erasePeriodS
+    ? config.flash.erase_current_mA * 1000 * (config.flash.erase_time_ms / 1000) * erase_events_per_second
     : 0;
 
   const flash_uA = flash_write_uA + flash_erase_uA;

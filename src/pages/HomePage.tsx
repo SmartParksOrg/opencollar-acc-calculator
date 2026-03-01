@@ -10,6 +10,7 @@ import { NrfSection } from "../components/ConfigPanel/NrfSection";
 import { PayloadBuilderSection } from "../components/ConfigPanel/PayloadBuilderSection";
 import { ResultsPanel } from "../components/ResultsPanel/ResultsPanel";
 import { PayloadPreview } from "../components/PayloadPreview/PayloadPreview";
+import { SmartSamplingSection } from "../components/ConfigPanel/SmartSamplingSection";
 
 type Props = {
   config: AppConfig;
@@ -29,8 +30,8 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
   );
 
   const storage = useMemo(
-    () => calculateStorageUsage(config.storage, payloadBytes, config.report.interval_seconds),
-    [config.storage, payloadBytes, config.report.interval_seconds]
+    () => calculateStorageUsage(config.storage, payloadBytes, config.report.interval_seconds, config.smartSampling),
+    [config.storage, payloadBytes, config.report.interval_seconds, config.smartSampling]
   );
 
   const runtimeBest = config.uncertainty.enabled
@@ -80,6 +81,7 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
           <LisSection config={config} onChange={setConfig} />
           <NrfSection config={config} onChange={setConfig} />
           <PayloadBuilderSection config={config} payloadBytes={payloadBytes} onChange={setConfig} />
+          <SmartSamplingSection config={config} onChange={setConfig} />
           <PayloadPreview config={config} />
 
           <section className="assumptions">
@@ -91,6 +93,7 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
               <li>LIS2DW12 LP1 low-noise-off anchor table with linear interpolation between ODR points.</li>
               <li>FIFO depth fixed at 32 samples.</li>
               <li>Default report interval: 300 s (5 minutes).</li>
+              <li>Smart sampling filters stored windows only; accelerometer sampling/FIFO behavior is unchanged.</li>
             </ul>
           </section>
         </main>
@@ -102,7 +105,6 @@ export function HomePage({ config, setConfig, onCopyConfig, onShareLink }: Props
           runtimeWorst={runtimeWorst}
           storage={storage}
           payloadBytes={payloadBytes}
-          reportIntervalS={config.report.interval_seconds}
         />
       </div>
     </div>

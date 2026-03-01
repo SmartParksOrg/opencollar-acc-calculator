@@ -114,7 +114,7 @@ export function NrfSection({ config, onChange }: Props): JSX.Element {
 
         <FieldCard
           label="Flash write time (ms)"
-          help="Time spent per record write; amortized over report interval in current model."
+          help="Time spent per record write; amortized over stored windows rate in current model."
           impacts={[
             "Longer write increases flash average current",
             "Longer write lowers runtime",
@@ -171,7 +171,7 @@ export function NrfSection({ config, onChange }: Props): JSX.Element {
 
         <FieldCard
           label="Erase interval records"
-          help="How many records between erase events for amortization model."
+          help="How many stored records between erase events for amortization model."
           impacts={[
             "Higher interval lowers amortized erase current",
             "Higher interval extends runtime estimate",
