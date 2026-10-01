@@ -81,7 +81,8 @@ describe("continuous Motion Statistics architecture", () => {
     expect(config.feature).toEqual(defaultConfig.feature);
     expect(config.radio).toEqual(defaultConfig.radio);
     expect(config.payload.header_bytes).toBe(0);
-    expect(config.payload.included_fields).toEqual(["timestamp_u32", "temp_cC_i16"]);
+    expect(config.payload.included_fields).toEqual(["timestamp_u32"]);
+    expect(config.payload.migration_notes?.join(" ")).toContain("single temperature reading");
     expect(config.nrf52.finalize_time_ms).toBe(20);
     expect(config.nrf52.sample_processing_time_us).toBe(10);
     expect(config.smartSampling.episode_pre_windows).toBe(3);

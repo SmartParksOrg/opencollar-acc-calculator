@@ -27,8 +27,23 @@ export function MotionSection({ config, onChange }: { config: AppConfig; onChang
           </div>
           <p><strong>{motion.samples_per_feature_window.toLocaleString()} samples per feature window</strong></p>
           <p className="help">Primary feature: standard deviation of |a| = sqrt(x² + y² + z²).
-            Also accumulate mean VeDBA (dynamic vector magnitude); optional ODBA and peak magnitude remain available.
+            Also accumulate mean VeDBA (dynamic vector magnitude); optional ODBA and peak statistics have distinct definitions in the payload builder.
             Active means std(|a|) exceeds the explicit threshold. Share this threshold with the server as configuration provenance.</p>
+          <div className="grid-2">
+            <label className="field">Gravity removal for VeDBA / ODBA
+              <select value={config.payload.gravity_removal}
+                onChange={(e) => patch((c) => { c.payload.gravity_removal = e.target.value as AppConfig["payload"]["gravity_removal"]; })}>
+                <option value="iir_lp">Running low-pass baseline (IIR)</option>
+                <option value="window_mean">Mean of each feature window</option>
+              </select>
+              <span className="help">Both describe dynamic acceleration after subtracting a gravity estimate.</span>
+            </label>
+            {config.payload.gravity_removal === "iir_lp" ? <label className="field">Gravity baseline smoothing (alpha)
+              <input type="number" min={0.001} max={1} step={0.001} value={config.payload.iir_alpha}
+                onChange={(e) => patch((c) => { c.payload.iir_alpha = Number(e.target.value); })} />
+              <span className="help">A smaller alpha follows changes in gravity more slowly.</span>
+            </label> : null}
+          </div>
           <p className="small">Streaming accumulators avoid retaining every XYZ sample. Algorithm choices describe the
             firmware model; this calculator does not infer features or activity from a recorded signal.</p>
         </div>

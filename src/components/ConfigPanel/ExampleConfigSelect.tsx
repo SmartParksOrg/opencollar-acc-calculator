@@ -18,6 +18,7 @@ export function ExampleConfigSelect({ onApply, current }: Props): JSX.Element {
     c.lis.fifo_mode = "continuous";
     c.lis.odr_source = "preset";
     c.payload.included_fields = [...DEFAULT_FIELDS];
+    c.payload.migration_notes = [];
     c.smartSampling.enabled = false;
     if (preset === "ultra") {
       c.lis.odr_hz = 12.5;

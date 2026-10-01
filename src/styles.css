@@ -351,3 +351,74 @@ main {
     gap: 0.4rem;
   }
 }
+
+.payload-group h3 {
+  margin-bottom: 0.35rem;
+}
+
+.payload-fields td {
+  vertical-align: top;
+}
+
+.payload-fields th:first-child {
+  width: 30%;
+}
+
+.payload-fields label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.payload-fields input {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+}
+
+.payload-options {
+  margin-top: 1rem;
+}
+
+.payload-options > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .payload-fields,
+  .payload-fields tbody {
+    display: block;
+    white-space: normal;
+  }
+
+  .payload-fields thead {
+    display: none;
+  }
+
+  .payload-fields tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.4rem 0.75rem;
+    border: 1px solid #dbe4ef;
+    padding: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .payload-fields td {
+    border: 0;
+    padding: 0;
+  }
+
+  .payload-fields td:nth-child(2)::after {
+    content: " " attr(data-unit);
+  }
+
+  .payload-fields td:last-child {
+    grid-column: 1 / -1;
+    color: #475569;
+  }
+
+  .payload-fields label {
+    font-weight: 600;
+  }
+}

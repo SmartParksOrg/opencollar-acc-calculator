@@ -1,3 +1,6 @@
+import { DEFAULT_FIELDS, type StatField } from "./payloadSchema";
+export { DEFAULT_FIELDS, MOTION_FIELDS, TEMPERATURE_FIELDS, type StatField } from "./payloadSchema";
+
 export type Battery = {
   preset_id?: string;
   capacity_mAh: number;
@@ -59,59 +62,12 @@ export type ReportConfig = {
   store_to_flash: boolean;
 };
 
-export type StatField =
-  | "motion_mean_u16"
-  | "motion_sd_u16"
-  | "motion_p25_u16"
-  | "motion_p50_u16"
-  | "motion_p75_u16"
-  | "motion_max_u16"
-  | "vedba_mean_u16"
-  | "active_fraction_u8"
-  | "transition_count_u8"
-  | "valid_window_count_u16"
-  | "temperature_mean_cC_i16"
-  | "temperature_min_cC_i16"
-  | "temperature_max_cC_i16"
-  | "timestamp_u32"
-  | "odba_mean_i16"
-  | "odba_max_i16"
-  | "vedba_mean_i16"
-  | "vedba_max_i16"
-  | "std_xyz_i16x3"
-  | "mean_xyz_i16x3"
-  | "peak_acc_i16"
-  | "sample_count_u16"
-  | "activity_flags_u8"
-  | "reserved_u8"
-  | "odr_code_u8"
-  | "fs_code_u8"
-  | "mode_code_u8"
-  | "overflow_count_u8"
-  | "crc16_u16"
-  | "window_len_s_u16"
-  | "temp_cC_i16"
-  | "batt_mV_u16";
-
 export type PayloadConfig = {
   included_fields: StatField[];
   header_bytes: number;
-  scaling: {
-    accel_unit: "mg";
-    odba_unit: "mg";
-    vedba_unit: "mg";
-    std_unit: "mg";
-    peak_unit: "mg";
-  };
-  odba_definition: "abs_sum_dynamic" | "abs_sum_raw";
-  vedba_definition: "rss_dynamic" | "rss_raw" | "rss2_dynamic";
   gravity_removal: "iir_lp" | "window_mean";
   iir_alpha: number;
-  mean_std_frame: "dynamic" | "raw";
-  activity_thresholds: {
-    odba_mean_mg: number;
-    stillness_std_mg: number;
-  };
+  migration_notes?: string[];
 };
 
 export type RuntimeUncertainty = {
@@ -191,18 +147,6 @@ export type FlashOption = {
   megabit: 128 | 256;
   bytes: number;
 };
-
-export const MOTION_FIELDS: StatField[] = [
-  "timestamp_u32", "motion_mean_u16", "motion_sd_u16", "motion_p25_u16",
-  "motion_p50_u16", "motion_p75_u16", "motion_max_u16", "vedba_mean_u16",
-  "active_fraction_u8", "transition_count_u8", "valid_window_count_u16"
-];
-
-export const TEMPERATURE_FIELDS: StatField[] = [
-  "temperature_mean_cC_i16", "temperature_min_cC_i16", "temperature_max_cC_i16"
-];
-
-export const DEFAULT_FIELDS: StatField[] = [...MOTION_FIELDS, ...TEMPERATURE_FIELDS];
 
 export const BATTERY_PRESETS: BatteryPreset[] = [
   {
@@ -310,22 +254,8 @@ export const defaultConfig: AppConfig = {
   payload: {
     header_bytes: 0,
     included_fields: DEFAULT_FIELDS,
-    scaling: {
-      accel_unit: "mg",
-      odba_unit: "mg",
-      vedba_unit: "mg",
-      std_unit: "mg",
-      peak_unit: "mg"
-    },
-    odba_definition: "abs_sum_dynamic",
-    vedba_definition: "rss_dynamic",
     gravity_removal: "iir_lp",
-    iir_alpha: 0.01,
-    mean_std_frame: "dynamic",
-    activity_thresholds: {
-      odba_mean_mg: 200,
-      stillness_std_mg: 60
-    }
+    iir_alpha: 0.01
   },
   smartSampling: {
     enabled: false,

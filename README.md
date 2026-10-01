@@ -36,7 +36,7 @@ as 2.5 s for whole sample counts. FIFO stop/bypass modes are preserved in config
 ## Features and payload
 
 Each short window models `std(|a|)` with `|a| = sqrt(x² + y² + z²)`, mean VeDBA, and active/inactive classification
-using a configurable explicit threshold in mg. ODBA and peak magnitude remain optional legacy fields.
+using a configurable explicit threshold in mg. ODBA mean/peak, VeDBA peak and peak acceleration magnitude are distinct optional report extensions.
 The report aggregates **the distribution of short-window std(|a|)**, not all samples into one long standard deviation.
 Threshold provenance must accompany server configuration; the calculator's report threshold is independent of
 Smart Sampling retention thresholds. No FFT, learned classification, or behaviour labels are introduced.
@@ -65,7 +65,7 @@ and **8,064 generated payload bytes/day** at 5 minutes. Configurable overhead ap
 Remove the timestamp if an authoritative framework timestamp already exists. Extra record framing, flash allocation
 rounding and transport overhead must be included in the byte budget as appropriate; none is silently assumed.
 The preview shows illustrative little-endian field bytes and their encoded integer values, excluding unknown headers.
-It is not a finalized firmware encoder. Legacy 30-byte layouts and optional fields remain available for comparison.
+It is not a finalized firmware encoder. The builder offers one canonical encoding per statistic; the old 30-byte field list is no longer offered.
 
 ## Smart Sampling
 
@@ -136,4 +136,26 @@ flash/radio accounting, legacy configuration defaults, and rendered UI output.
 
 GitHub Pages deployment uses `.github/workflows/deploy.yml`, publishes `dist/`, and retains the Vite base path
 `/opencollar-acc-calculator/`. Copy configuration exports JSON; Share link uses `#cfg=<base64-json>`.
-Older links receive defaults for new fields while preserving their existing settings and optional legacy payload fields.
+Older links receive defaults for new fields and migrate their field selection with visible review notes. Equivalent ODBA/VeDBA signed fields map to their non-negative unsigned representation and duplicates are merged. Axis statistics, ambiguous peaks, single temperature readings, short-window metadata and old activity flags are removed rather than reinterpreted as different measurements. Protocol metadata is budgeted in header overhead; the import notes explain which bytes may need to be restored there.
+
+
+## Keeping the payload unambiguous
+
+`src/models/payloadSchema.ts` is the single catalog for field labels, definitions, grouping, units, encodings,
+recommended selections and example values. The builder, byte budget and preview all use it. Each statistic has one
+semantic identifier and one encoding, and tests enforce unique identifiers and labels, canonical ordering, safe import
+migration and matching sizes/offsets/example bytes. No signed/unsigned variant is offered as a second measurement.
+
+The recommended report contains timestamp, seven motion statistics, three activity/coverage statistics and three
+temperature statistics. Optional report extensions contain four additional motion details plus battery voltage and
+FIFO overflow count. These are candidates beyond issue #671's core layout and need firmware agreement.
+
+- Motion max: largest **short-window std(|a|)** in the report.
+- VeDBA peak: largest **single-sample dynamic vector magnitude**, after gravity removal.
+- Peak acceleration magnitude: largest **single-sample raw vector magnitude**, including gravity.
+- ODBA uses a sum of absolute dynamic axis values; VeDBA uses their vector magnitude. They are distinct features.
+- Median and p50 are a single selectable statistic.
+
+The payload builder has no separate acquisition/algorithm switches. Gravity removal is configured under Feature
+windows. ODBA/VeDBA consistently mean dynamic acceleration; raw and squared variants and legacy flag thresholds are
+no longer selectable or exported. Smart Sampling's independent retention settings remain unchanged.
