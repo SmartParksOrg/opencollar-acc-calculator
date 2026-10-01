@@ -139,10 +139,25 @@ button.secondary {
 }
 
 .field {
+  display: block;
+  min-width: 0;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 0.6rem;
   padding: 0.6rem;
+}
+
+label.field > input:not([type="checkbox"]):not([type="radio"]) {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.collapsible-content > label.field {
+  margin-block: 0.75rem;
+}
+
+.collapsible-content > button {
+  margin-bottom: 0.75rem;
 }
 
 .field label {
