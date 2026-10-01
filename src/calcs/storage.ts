@@ -1,43 +1,32 @@
-import type { SmartSamplingConfig, Storage } from "../models/config";
-import { calculateSmartSamplingMetrics, type SmartSamplingMetrics } from "./smartSampling";
+import type { AppConfig } from "../models/config";
+import { calculatePayloadBytes } from "./payload";
+import { calculateSmartSamplingMetrics } from "./smartSampling";
 
-export type StorageMetrics = {
-  smart_sampling_enabled: boolean;
-  baseline_keep_enabled: boolean;
-  episodes_enabled: boolean;
-  windows_per_day: number;
-  records_per_day: number;
-  stored_windows_per_day: number;
-  stored_fraction: number;
-  bytes_per_day: number;
-  days_to_fill: number;
-  messages_until_full: number;
-  smartSampling: SmartSamplingMetrics;
-};
-
-export function calculateStorageUsage(
-  storage: Storage,
-  payloadBytes: number,
-  reportIntervalS: number,
-  smartSampling: SmartSamplingConfig
-): StorageMetrics {
-  const safePayload = Math.max(1, payloadBytes);
-  const smartSamplingMetrics = calculateSmartSamplingMetrics(smartSampling, reportIntervalS);
-  const bytes_per_day = smartSamplingMetrics.stored_windows_per_day * safePayload;
-  const messages_until_full = storage.flash_bytes_available / safePayload;
-  const days_to_fill = bytes_per_day > 0 ? storage.flash_bytes_available / bytes_per_day : Number.POSITIVE_INFINITY;
-
+export function calculateStorageUsage(config: AppConfig) {
+  const payload_bytes_per_report = calculatePayloadBytes(config.payload.included_fields) + config.payload.header_bytes;
+  const smartSampling = calculateSmartSamplingMetrics(config.smartSampling, config.report.interval_seconds);
+  const reports_per_day = smartSampling.reports_per_day;
+  const retained_reports_per_day = smartSampling.stored_reports_per_day;
+  const stored_reports_per_day = config.report.store_to_flash && config.flash.enabled ? retained_reports_per_day : 0;
+  const transmitted_reports_per_day = config.radio.enabled ? retained_reports_per_day : 0;
+  const bytes_per_day = stored_reports_per_day * payload_bytes_per_report;
   return {
-    smart_sampling_enabled: smartSampling.enabled && smartSampling.threshold_mode !== "off",
-    baseline_keep_enabled: smartSampling.baseline_keep_enabled,
-    episodes_enabled: smartSampling.episodes_enabled,
-    windows_per_day: smartSamplingMetrics.windows_per_day,
-    records_per_day: smartSamplingMetrics.windows_per_day,
-    stored_windows_per_day: smartSamplingMetrics.stored_windows_per_day,
-    stored_fraction: smartSamplingMetrics.stored_fraction,
+    smart_sampling_enabled: config.smartSampling.enabled && config.smartSampling.threshold_mode !== "off",
+    baseline_keep_enabled: config.smartSampling.baseline_keep_enabled,
+    episodes_enabled: config.smartSampling.episodes_enabled,
+    reports_per_day,
+    retained_reports_per_day,
+    stored_reports_per_day,
+    transmitted_reports_per_day,
+    stored_fraction: smartSampling.stored_fraction,
+    payload_bytes_per_report,
+    payload_bytes_per_day: reports_per_day * payload_bytes_per_report,
+    transmitted_bytes_per_day: transmitted_reports_per_day * payload_bytes_per_report,
     bytes_per_day,
-    days_to_fill,
-    messages_until_full,
-    smartSampling: smartSamplingMetrics
+    days_to_fill: bytes_per_day > 0 ? config.storage.flash_bytes_available / bytes_per_day : Infinity,
+    messages_until_full: payload_bytes_per_report > 0 ? Math.floor(config.storage.flash_bytes_available / payload_bytes_per_report) : Infinity,
+    smartSampling
   };
 }
+
+export type StorageMetrics = ReturnType<typeof calculateStorageUsage>;

@@ -67,11 +67,10 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
   return (
     <section className="section card collapsible">
       <details open>
-        <summary><span className="section-title">5. Smart Sampling (Storage filtering)</span></summary>
+        <summary><span className="section-title">7. Smart Sampling (completed-report retention)</span></summary>
         <div className="collapsible-content">
           <p className="help" style={{ marginTop: 0 }}>
-        Smart sampling does not change accelerometer sampling or FIFO servicing. It only decides which computed windows are
-        stored to flash.
+        Smart sampling does not change accelerometer sampling or FIFO servicing. It only decides which completed reports are retained for flash and enabled radio transmission. All feature windows still contribute to report statistics.
           </p>
 
           <div className="button-row" style={{ marginBottom: "0.75rem" }}>
@@ -86,12 +85,12 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
           <div className="grid-2">
         <FieldCard
           label="Enable smart sampling"
-          help="What is this? Enables storage filtering so windows are stored when activity rules match."
+          help="What is this? Enables storage filtering so reports are stored when activity rules match."
           impacts={[
             "No sensor sampling power change",
             "Can increase runtime by reducing flash writes",
             "Lower stored fraction extends flash retention",
-            "Retains active windows, may drop inactive context"
+            "Retains active reports, may drop inactive context"
           ]}
         >
           <input
@@ -107,7 +106,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
           impacts={[
             "No direct current change",
             "No direct runtime change",
-            "Can change stored fraction under same assumptions",
+            "Metadata only; adjust assumed activity to change the estimate",
             "Different metrics capture different movement patterns"
           ]}
         >
@@ -144,7 +143,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
           impacts={[
             "No direct current change",
             "No direct runtime change",
-            "Can increase stored windows if very sensitive",
+            "Can increase stored reports if very sensitive",
             "Improves capture of abrupt transitions"
           ]}
         >
@@ -164,10 +163,10 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
               label="Threshold mode"
               help="What is this? Sets whether thresholds are disabled, fixed in mg, or auto percentile based."
               impacts={[
-                "Off can increase flash write current by storing all windows",
+                "Off can increase flash write current by storing all reports",
                 "Better filtering usually improves runtime through lower flash duty",
                 "Auto and manual can reduce bytes/day relative to off",
-                "Auto adapts across species using calibration percentiles"
+                "Auto is a hypothetical percentile retention policy"
               ]}
             >
               <div className="button-row">
@@ -197,7 +196,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             <div className="grid-2" style={{ marginTop: "0.75rem" }}>
           <FieldCard
             label="Calibration duration (hours)"
-            help="What is this? Duration used on-device to learn percentile thresholds from observed motion."
+            help="What is this? Proposed calibration duration for retention thresholds; not a verified firmware capability."
             impacts={[
               "No direct current change in simulator",
               "No direct runtime change in simulator",
@@ -238,7 +237,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             impacts={[
               "No direct current change",
               "No direct runtime change",
-              "Lower exit threshold tends to retain more windows",
+              "Lower exit threshold tends to retain more reports",
               "Hysteresis improves stable state transitions"
             ]}
           >
@@ -257,7 +256,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             impacts={[
               "No direct current change",
               "No direct runtime change",
-              "Lower value stores more burst windows",
+              "Lower value stores more burst reports",
               "Higher value focuses on only strongest bursts"
             ]}
           >
@@ -280,7 +279,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             impacts={[
               "No direct current change",
               "No direct runtime change",
-              "Lower threshold increases stored windows",
+              "Lower threshold increases stored reports",
               "Threshold controls sensitivity to movement"
             ]}
           >
@@ -298,7 +297,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             impacts={[
               "No direct current change",
               "No direct runtime change",
-              "Higher exit threshold tends to keep more windows",
+              "Higher exit threshold tends to keep more reports",
               "Exit hysteresis helps avoid rapid toggling"
             ]}
           >
@@ -316,7 +315,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             impacts={[
               "No direct current change",
               "No direct runtime change",
-              "Lower peak threshold stores more burst windows",
+              "Lower peak threshold stores more burst reports",
               "Higher threshold targets extreme bursts"
             ]}
           >
@@ -332,12 +331,12 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
 
           <div className="grid-2" style={{ marginTop: "0.75rem" }}>
         <FieldCard
-          label="Consecutive windows to enter"
+          label="Consecutive reports to enter"
           help="What is this? Debounce count required before entering active state."
           impacts={[
             "No direct current change",
             "No direct runtime change",
-            "Higher value can reduce stored windows in noisy regions",
+            "Higher value can reduce stored reports in noisy regions",
             "Reduces false-positive active periods"
           ]}
         >
@@ -350,7 +349,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
         </FieldCard>
 
         <FieldCard
-          label="Consecutive windows to exit"
+          label="Consecutive reports to exit"
           help="What is this? Debounce count required before leaving active state."
           impacts={[
             "No direct current change",
@@ -369,7 +368,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
 
         <FieldCard
           label="Baseline trickle"
-          help="What is this? Keeps sparse inactive windows to reduce sampling bias in time budgets."
+          help="What is this? Keeps sparse inactive reports to reduce sampling bias in time budgets."
           impacts={[
             "Slightly increases flash duty",
             "May modestly reduce runtime",
@@ -385,8 +384,8 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
         </FieldCard>
 
         <FieldCard
-          label="Store 1 in N inactive windows"
-          help="What is this? Baseline trickle ratio when inactive windows are otherwise filtered out."
+          label="Store 1 in N inactive reports"
+          help="What is this? Baseline trickle ratio when inactive reports are otherwise filtered out."
           impacts={[
             "Lower N slightly raises flash current",
             "Lower N slightly lowers runtime",
@@ -410,15 +409,15 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             checked={config.smartSampling.episodes_enabled}
             onChange={(e) => patch((c) => { c.smartSampling.episodes_enabled = e.target.checked; })}
           /> {" "}
-          Enable Episodes (store pre/post context windows)
+          Enable Episodes (store pre/post context reports)
         </label>
         <p className="help">
-          What is this? Stores windows before and after triggers to capture transitions like rest to move to rest.
+          What is this? Stores reports before and after triggers to capture transitions like rest to move to rest.
         </p>
         <ul className="impact">
           <li>Power: Slightly increases flash write and erase duty.</li>
           <li>Runtime: Slightly lower when many short bouts trigger episodes.</li>
-          <li>Storage: Adds context windows around triggers.</li>
+          <li>Storage: Adds context reports around triggers.</li>
           <li>Data quality: Better transition context for behavior interpretation.</li>
         </ul>
           </div>
@@ -426,12 +425,12 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
           {config.smartSampling.episodes_enabled ? (
             <div className="grid-3" style={{ marginTop: "0.75rem" }}>
           <FieldCard
-            label="Pre windows"
-            help="What is this? Number of windows stored before each trigger."
+            label="Pre reports"
+            help="What is this? Number of reports stored before each trigger."
             impacts={[
               "No direct current change outside flash duty",
-              "More pre windows can lower runtime slightly",
-              "More pre windows increase bytes/day",
+              "More pre reports can lower runtime slightly",
+              "More pre reports increase bytes/day",
               "Captures lead-in motion before event"
             ]}
           >
@@ -443,12 +442,12 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             />
           </FieldCard>
           <FieldCard
-            label="Post windows"
-            help="What is this? Number of windows stored after each trigger."
+            label="Post reports"
+            help="What is this? Number of reports stored after each trigger."
             impacts={[
               "No direct current change outside flash duty",
-              "More post windows can lower runtime slightly",
-              "More post windows increase bytes/day",
+              "More post reports can lower runtime slightly",
+              "More post reports increase bytes/day",
               "Captures recovery phase after events"
             ]}
           >
@@ -460,8 +459,8 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             />
           </FieldCard>
           <FieldCard
-            label="Cooldown windows"
-            help="What is this? Cooldown suppresses repeated near-adjacent triggers and duplicate episode windows."
+            label="Cooldown reports"
+            help="What is this? Cooldown suppresses repeated near-adjacent triggers and duplicate episode reports."
             impacts={[
               "No direct current change",
               "Higher cooldown can improve runtime slightly",
@@ -482,13 +481,13 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
           <div className="card" style={{ marginTop: "0.75rem", padding: "0.75rem" }}>
         <h3 style={{ marginTop: 0, marginBottom: "0.5rem" }}>Assumptions (simulator)</h3>
         <p className="help" style={{ marginTop: 0 }}>
-          In firmware, percentiles are learned during calibration from observed VeDBA distribution; simulator uses assumed
-          activity distribution.
+          Optional retention scenario only: manual/auto settings describe a proposed policy, not verified firmware support.
+          Retention estimates use assumed report activity and peak fractions, not simulated sensor data or learned thresholds.
         </p>
         <div className="grid-2">
           <FieldCard
-            label={`% time active (${config.smartSampling.assumptions.active_percent.toFixed(1)}%)`}
-            help="What is this? Assumed fraction of windows in sustained activity."
+            label={`% reports active (${config.smartSampling.assumptions.active_percent.toFixed(1)}%)`}
+            help="What is this? Assumed fraction of reports in sustained activity."
             impacts={[
               "No sampling current change",
               "Higher value lowers runtime through more flash writes",
@@ -507,12 +506,12 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
           </FieldCard>
 
           <FieldCard
-            label={`% windows with burst peaks (${config.smartSampling.assumptions.peak_percent.toFixed(1)}%)`}
-            help="What is this? Assumed fraction of otherwise inactive windows that still trigger peak override."
+            label={`% reports with burst peaks (${config.smartSampling.assumptions.peak_percent.toFixed(1)}%)`}
+            help="What is this? Assumed fraction of otherwise inactive reports that still trigger peak override."
             impacts={[
               "No sampling current change",
               "Higher value lowers runtime via flash writes",
-              "Higher value increases stored windows",
+              "Higher value increases stored reports",
               "Improves rare burst event retention"
             ]}
           >
@@ -532,7 +531,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
             impacts={[
               "No direct sensor current change",
               "Lower factor can improve runtime estimates",
-              "Lower factor reduces stored windows",
+              "Lower factor reduces stored reports",
               "Advanced approximation only"
             ]}
           >
@@ -565,12 +564,12 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
 
           {config.smartSampling.episodes_enabled ? (
             <FieldCard
-              label="Average bout length (windows)"
+              label="Average bout length (reports)"
               help="What is this? Average active bout duration used to estimate triggers/day for episode extras."
               impacts={[
                 "No direct current change",
                 "Shorter bouts can reduce runtime due to more triggers",
-                "Shorter bouts increase episode extra windows",
+                "Shorter bouts increase episode extra reports",
                 "Controls transition density in assumptions"
               ]}
             >
@@ -586,7 +585,7 @@ export function SmartSamplingSection({ config, onChange }: Props): JSX.Element {
           </div>
 
           <div className="small" style={{ marginTop: "0.5rem" }}>
-        Advanced note: debounce/hysteresis reduces stored windows in noisy threshold regions; this simulator uses an approximate
+        Advanced note: debounce/hysteresis reduces stored reports in noisy threshold regions; this simulator uses an approximate
         factor, not a full state model.
           </div>
         </div>

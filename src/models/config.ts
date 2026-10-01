@@ -29,7 +29,10 @@ export type Nrf52PowerModel = {
   sleep_current_uA: number;
   active_current_mA: number;
   fifo_service_time_ms: number;
-  finalize_time_ms: number;
+  finalize_time_ms: number; // report packaging, excluding percentiles
+  sample_processing_time_us: number;
+  feature_finalize_time_ms: number;
+  percentile_time_per_value_us: number;
 };
 
 export type FlashModel = {
@@ -41,12 +44,35 @@ export type FlashModel = {
   erase_interval_records: number;
 };
 
+export type FeatureConfig = {
+  window_seconds: number;
+  activity_threshold_mg: number;
+};
+
+export type RadioModel = {
+  enabled: boolean;
+  charge_per_report_mAs: number;
+};
+
 export type ReportConfig = {
   interval_seconds: number;
   store_to_flash: boolean;
 };
 
 export type StatField =
+  | "motion_mean_u16"
+  | "motion_sd_u16"
+  | "motion_p25_u16"
+  | "motion_p50_u16"
+  | "motion_p75_u16"
+  | "motion_max_u16"
+  | "vedba_mean_u16"
+  | "active_fraction_u8"
+  | "transition_count_u8"
+  | "valid_window_count_u16"
+  | "temperature_mean_cC_i16"
+  | "temperature_min_cC_i16"
+  | "temperature_max_cC_i16"
   | "timestamp_u32"
   | "odba_mean_i16"
   | "odba_max_i16"
@@ -69,6 +95,7 @@ export type StatField =
 
 export type PayloadConfig = {
   included_fields: StatField[];
+  header_bytes: number;
   scaling: {
     accel_unit: "mg";
     odba_unit: "mg";
@@ -143,6 +170,8 @@ export type AppConfig = {
   nrf52: Nrf52PowerModel;
   flash: FlashModel;
   report: ReportConfig;
+  feature: FeatureConfig;
+  radio: RadioModel;
   payload: PayloadConfig;
   smartSampling: SmartSamplingConfig;
   max_payload_bytes?: number;
@@ -163,19 +192,17 @@ export type FlashOption = {
   bytes: number;
 };
 
-export const DEFAULT_FIELDS: StatField[] = [
-  "timestamp_u32",
-  "odba_mean_i16",
-  "odba_max_i16",
-  "vedba_mean_i16",
-  "vedba_max_i16",
-  "std_xyz_i16x3",
-  "mean_xyz_i16x3",
-  "peak_acc_i16",
-  "sample_count_u16",
-  "activity_flags_u8",
-  "reserved_u8"
+export const MOTION_FIELDS: StatField[] = [
+  "timestamp_u32", "motion_mean_u16", "motion_sd_u16", "motion_p25_u16",
+  "motion_p50_u16", "motion_p75_u16", "motion_max_u16", "vedba_mean_u16",
+  "active_fraction_u8", "transition_count_u8", "valid_window_count_u16"
 ];
+
+export const TEMPERATURE_FIELDS: StatField[] = [
+  "temperature_mean_cC_i16", "temperature_min_cC_i16", "temperature_max_cC_i16"
+];
+
+export const DEFAULT_FIELDS: StatField[] = [...MOTION_FIELDS, ...TEMPERATURE_FIELDS];
 
 export const BATTERY_PRESETS: BatteryPreset[] = [
   {
@@ -254,14 +281,17 @@ export const defaultConfig: AppConfig = {
     mode: "LP1",
     noise: "low_noise_off",
     fs_g: 4,
-    fifo_watermark: 32,
+    fifo_watermark: 24,
     fifo_mode: "continuous"
   },
   nrf52: {
     sleep_current_uA: 1.5,
     active_current_mA: 4,
     fifo_service_time_ms: 2,
-    finalize_time_ms: 10
+    finalize_time_ms: 10,
+    sample_processing_time_us: 10,
+    feature_finalize_time_ms: 0.1,
+    percentile_time_per_value_us: 10
   },
   flash: {
     enabled: true,
@@ -275,7 +305,10 @@ export const defaultConfig: AppConfig = {
     interval_seconds: 300,
     store_to_flash: true
   },
+  feature: { window_seconds: 2, activity_threshold_mg: 60 },
+  radio: { enabled: false, charge_per_report_mAs: 0 },
   payload: {
+    header_bytes: 0,
     included_fields: DEFAULT_FIELDS,
     scaling: {
       accel_unit: "mg",
@@ -295,7 +328,7 @@ export const defaultConfig: AppConfig = {
     }
   },
   smartSampling: {
-    enabled: true,
+    enabled: false,
     metric: "vedba_mean",
     peak_enabled: true,
     peak_metric: "vedba_max",

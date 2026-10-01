@@ -1,4 +1,4 @@
-import type { AppConfig } from "../../models/config";
+import { DEFAULT_FIELDS, type AppConfig } from "../../models/config";
 import { FieldCard } from "./FieldCard";
 
 type Props = {
@@ -14,48 +14,25 @@ export function ExampleConfigSelect({ onApply, current }: Props): JSX.Element {
   const apply = (preset: string): void => {
     const c = cloneConfig(current);
 
+    c.feature.window_seconds = 2;
+    c.lis.fifo_mode = "continuous";
+    c.lis.odr_source = "preset";
+    c.payload.included_fields = [...DEFAULT_FIELDS];
+    c.smartSampling.enabled = false;
     if (preset === "ultra") {
       c.lis.odr_hz = 12.5;
-      c.lis.odr_source = "preset";
-      c.lis.fifo_watermark = 32;
-      c.payload.included_fields = ["timestamp_u32", "odba_mean_i16", "sample_count_u16", "activity_flags_u8"];
-      c.report.interval_seconds = 300;
+      c.lis.fifo_watermark = 24;
+      c.report.interval_seconds = 900;
     }
-
     if (preset === "balanced") {
       c.lis.odr_hz = 25;
-      c.lis.odr_source = "preset";
-      c.lis.fifo_watermark = 32;
-      c.payload.included_fields = [
-        "timestamp_u32",
-        "odba_mean_i16",
-        "odba_max_i16",
-        "vedba_mean_i16",
-        "std_xyz_i16x3",
-        "sample_count_u16",
-        "activity_flags_u8"
-      ];
+      c.lis.fifo_watermark = 24;
       c.report.interval_seconds = 300;
     }
-
     if (preset === "detail") {
       c.lis.odr_hz = 100;
-      c.lis.odr_source = "preset";
       c.lis.fifo_watermark = 16;
-      c.payload.included_fields = [
-        "timestamp_u32",
-        "odba_mean_i16",
-        "odba_max_i16",
-        "vedba_mean_i16",
-        "vedba_max_i16",
-        "std_xyz_i16x3",
-        "mean_xyz_i16x3",
-        "peak_acc_i16",
-        "sample_count_u16",
-        "activity_flags_u8",
-        "reserved_u8"
-      ];
-      c.report.interval_seconds = 120;
+      c.report.interval_seconds = 300;
     }
 
     onApply(c);
@@ -68,7 +45,7 @@ export function ExampleConfigSelect({ onApply, current }: Props): JSX.Element {
       impacts={[
         "Varies by preset",
         "Long to short from ultra to detail",
-        "Fewer to more bytes/day",
+        "Report interval controls bytes/day",
         "Coarse to high-detail trend capture"
       ]}
     >

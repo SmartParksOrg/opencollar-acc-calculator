@@ -175,46 +175,6 @@ export function DeviceConstraintsSection({ config, onChange }: Props): JSX.Eleme
         </FieldCard>
 
         <FieldCard
-          label="Report interval (s)"
-          help="Time between summary records and finalize operations. Default 300 seconds (5 minutes)."
-          impacts={[
-            "Longer interval lowers finalize and flash average current",
-            "Longer interval increases runtime",
-            "Longer interval reduces records/day",
-            "Longer interval reduces temporal granularity"
-          ]}
-        >
-          <div className="grid-2">
-            <div>
-              <label>Seconds</label>
-              <input
-                type="number"
-                min={1}
-                value={config.report.interval_seconds}
-                onChange={(e) => patch((c) => { c.report.interval_seconds = Math.max(1, Number(e.target.value)); })}
-              />
-            </div>
-            <div>
-              <label>Minutes</label>
-              <input
-                type="number"
-                min={0.1}
-                step={0.1}
-                value={(config.report.interval_seconds / 60).toFixed(2)}
-                onChange={(e) =>
-                  patch((c) => {
-                    c.report.interval_seconds = Math.max(1, Math.round(Number(e.target.value) * 60));
-                  })
-                }
-              />
-            </div>
-          </div>
-          <p className="small" style={{ marginBottom: 0 }}>
-            Both fields edit the same setting.
-          </p>
-        </FieldCard>
-
-        <FieldCard
           label="Max payload bytes (optional)"
           help="Soft cap for payload design; use 0 to disable cap."
           impacts={[

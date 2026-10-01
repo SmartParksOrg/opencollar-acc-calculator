@@ -1,4 +1,4 @@
-import type { AppConfig, StatField } from "../../models/config";
+import { DEFAULT_FIELDS, type AppConfig, type StatField } from "../../models/config";
 import { getFieldDef } from "../../calcs/payload";
 import { FieldCard } from "./FieldCard";
 
@@ -9,7 +9,7 @@ type Props = {
 };
 
 const FIELD_ORDER: StatField[] = [
-  "timestamp_u32",
+  ...DEFAULT_FIELDS,
   "odba_mean_i16",
   "odba_max_i16",
   "vedba_mean_i16",
@@ -55,12 +55,22 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
   return (
     <section className="section card collapsible">
       <details open>
-        <summary><span className="section-title">4. Motion statistics payload builder</span></summary>
+        <summary><span className="section-title">6. Motion Statistics payload builder</span></summary>
         <div className="collapsible-content">
           <p className="help">
-        ODBA/VeDBA dynamic vs raw: dynamic removes gravity; raw mixes posture and motion.
+        Issue #671 candidate: 22 bytes for motion including timestamp, plus 6 assumed temperature bytes.
+        Motion fields aggregate short-window std(|a|). Temperature scaling, byte order and header/version metadata
+        still need firmware agreement. Legacy fields below remain available for comparison.
           </p>
 
+          {DEFAULT_FIELDS.filter((field) => field !== "timestamp_u32").some((field) => !config.payload.included_fields.includes(field))
+            ? <p className="notice">Custom or legacy layout: some recommended Motion Statistics or temperature fields are omitted.</p> : null}
+          <label className="field">Protocol/header overhead (bytes per report)
+            <input aria-label="Protocol/header overhead" type="number" min={0} step={1}
+              value={config.payload.header_bytes}
+              onChange={(e) => patch((c) => { c.payload.header_bytes = Number(e.target.value); })} />
+          </label>
+          <button className="secondary" onClick={() => patch((c) => { c.payload.included_fields = [...DEFAULT_FIELDS]; })}>Restore Motion Statistics fields</button>
           <div className="grid-2" style={{ marginBottom: "0.75rem" }}>
         <div className="field" style={{ gridColumn: "1 / -1" }}>
           <label>Payload size</label>
@@ -115,7 +125,7 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
         </div>
 
         <FieldCard
-          label="Mean/StdDev frame"
+          label="Legacy axis Mean/StdDev frame"
           help="Choose whether mean/std fields are derived from dynamic acceleration or raw acceleration."
           impacts={[
             "No direct effect in this model",
@@ -134,7 +144,7 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
         </FieldCard>
 
         <FieldCard
-          label="Activity flag thresholds"
+          label="Legacy activity flag thresholds"
           help="Thresholds used if activity flags depend on ODBA mean and stillness STD criteria."
           impacts={[
             "No direct effect",
@@ -152,7 +162,7 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
                 value={config.payload.activity_thresholds.odba_mean_mg}
                 onChange={(e) => patch((c) => { c.payload.activity_thresholds.odba_mean_mg = Number(e.target.value); })}
               />
-              <p className="small" style={{ marginBottom: 0 }}>Above this value, a window is considered active.</p>
+              <p className="small" style={{ marginBottom: 0 }}>Used only for the optional legacy ODBA activity flag.</p>
             </div>
             <div>
               <label>Stillness STD threshold (mg)</label>
@@ -162,7 +172,7 @@ export function PayloadBuilderSection({ config, payloadBytes, onChange }: Props)
                 value={config.payload.activity_thresholds.stillness_std_mg}
                 onChange={(e) => patch((c) => { c.payload.activity_thresholds.stillness_std_mg = Number(e.target.value); })}
               />
-              <p className="small" style={{ marginBottom: 0 }}>Below this value, a window is considered still.</p>
+              <p className="small" style={{ marginBottom: 0 }}>Used only for the optional legacy stillness flag.</p>
             </div>
           </div>
         </FieldCard>

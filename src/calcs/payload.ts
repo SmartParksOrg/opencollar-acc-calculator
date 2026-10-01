@@ -9,14 +9,31 @@ export type FieldDefinition = {
   notes: string;
 };
 
+function field(field: StatField, label: string, type: string, bytes: number, scaling: string, notes: string): FieldDefinition {
+  return { field, label, type, bytes, scaling, notes };
+}
+
 const FIELD_DEFS: Record<StatField, FieldDefinition> = {
+  motion_mean_u16: field("motion_mean_u16", "Motion mean", "u16", 2, "mg (candidate)", "Mean of short-window std(|a|)"),
+  motion_sd_u16: field("motion_sd_u16", "Motion SD", "u16", 2, "mg (candidate)", "Standard deviation across short-window std(|a|) values"),
+  motion_p25_u16: field("motion_p25_u16", "Motion p25", "u16", 2, "mg (candidate)", "25th percentile of short-window std(|a|)"),
+  motion_p50_u16: field("motion_p50_u16", "Motion p50", "u16", 2, "mg (candidate)", "Median of short-window std(|a|)"),
+  motion_p75_u16: field("motion_p75_u16", "Motion p75", "u16", 2, "mg (candidate)", "75th percentile of short-window std(|a|)"),
+  motion_max_u16: field("motion_max_u16", "Motion max", "u16", 2, "mg (candidate)", "Maximum short-window std(|a|), not peak raw magnitude"),
+  vedba_mean_u16: field("vedba_mean_u16", "VeDBA mean", "u16", 2, "mg (candidate)", "Mean dynamic vector magnitude over all valid feature windows"),
+  active_fraction_u8: field("active_fraction_u8", "Active fraction", "u8", 1, "0–255 = 0–100%", "Fraction of valid feature windows above the explicit std(|a|) threshold"),
+  transition_count_u8: field("transition_count_u8", "Transition count", "u8", 1, "count", "Active/inactive transitions within report; saturation policy needs firmware confirmation"),
+  valid_window_count_u16: field("valid_window_count_u16", "Valid window count", "u16", 2, "count", "Completed valid feature windows; exposes incomplete reports / sample loss"),
+  temperature_mean_cC_i16: field("temperature_mean_cC_i16", "Temperature mean", "i16", 2, "0.01 °C (assumed)", "Candidate report statistic; firmware encoding remains to be agreed"),
+  temperature_min_cC_i16: field("temperature_min_cC_i16", "Temperature min", "i16", 2, "0.01 °C (assumed)", "Candidate report statistic; firmware encoding remains to be agreed"),
+  temperature_max_cC_i16: field("temperature_max_cC_i16", "Temperature max", "i16", 2, "0.01 °C (assumed)", "Candidate report statistic; firmware encoding remains to be agreed"),
   timestamp_u32: {
     field: "timestamp_u32",
     label: "Timestamp",
     type: "u32",
     bytes: 4,
     scaling: "seconds since epoch",
-    notes: "Window start or end timestamp"
+    notes: "Report timestamp; omit if the framework already supplies it"
   },
   odba_mean_i16: {
     field: "odba_mean_i16",
@@ -80,7 +97,7 @@ const FIELD_DEFS: Record<StatField, FieldDefinition> = {
     type: "u16",
     bytes: 2,
     scaling: "count",
-    notes: "Number of samples in window"
+    notes: "Legacy short-feature sample count; use valid_window_count for report coverage"
   },
   activity_flags_u8: {
     field: "activity_flags_u8",
@@ -144,7 +161,7 @@ const FIELD_DEFS: Record<StatField, FieldDefinition> = {
     type: "u16",
     bytes: 2,
     scaling: "seconds",
-    notes: "Duration represented by stats"
+    notes: "Legacy short-feature duration (whole seconds)"
   },
   temp_cC_i16: {
     field: "temp_cC_i16",
@@ -206,9 +223,24 @@ export function buildExamplePayload(fields: StatField[], config: AppConfig): { h
   const json: Record<string, number> = {};
   const bytes: number[] = [];
 
+  const reportExample: Partial<Record<StatField, number>> = {
+    motion_mean_u16: 80, motion_sd_u16: 35, motion_p25_u16: 40, motion_p50_u16: 70,
+    motion_p75_u16: 110, motion_max_u16: 180, vedba_mean_u16: 120,
+    active_fraction_u8: 128, transition_count_u8: 12,
+    valid_window_count_u16: Math.min(65535, Math.max(0, Math.floor(config.report.interval_seconds / config.feature.window_seconds))),
+    temperature_mean_cC_i16: 1850, temperature_min_cC_i16: -250, temperature_max_cC_i16: 2750,
+    window_len_s_u16: Math.min(65535, Math.max(0, Math.round(config.feature.window_seconds)))
+  };
+
   fields.forEach((field, idx) => {
     const base = 100 + idx * 7;
 
+    const reportValue = reportExample[field];
+    if (reportValue !== undefined) {
+      json[field] = reportValue;
+      bytes.push(...toLEBytes(reportValue, FIELD_DEFS[field].bytes));
+      return;
+    }
     switch (field) {
       case "timestamp_u32": {
         const value = 1_706_800_000;
@@ -217,7 +249,7 @@ export function buildExamplePayload(fields: StatField[], config: AppConfig): { h
         break;
       }
       case "sample_count_u16": {
-        const value = Math.max(1, Math.round(config.report.interval_seconds * config.lis.odr_hz));
+        const value = Math.min(65535, Math.max(1, Math.round(config.feature.window_seconds * config.lis.odr_hz)));
         json[field] = value;
         bytes.push(...toLEBytes(value, 2));
         break;

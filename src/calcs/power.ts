@@ -1,5 +1,6 @@
 import type { AppConfig, Lis2dw12Config } from "../models/config";
-import { calculateSmartSamplingMetrics } from "./smartSampling";
+import { calculateStorageUsage } from "./storage";
+import { calculateMotionMetrics, hasPercentiles } from "./motion";
 
 export const FIFO_SAMPLES = 32;
 
@@ -32,6 +33,11 @@ export type PowerBreakdown = {
   sleep_uA: number;
   fifo_service_uA: number;
   finalize_uA: number;
+  sample_processing_uA: number;
+  feature_finalize_uA: number;
+  percentile_uA: number;
+  radio_uA: number;
+  mcu_active_duty: number;
   flash_uA: number;
   flash_write_uA: number;
   flash_erase_uA: number;
@@ -101,7 +107,7 @@ export function estimateLisCurrent(config: Lis2dw12Config): InterpolationResult 
 
 export function calculateFifoMetrics(odr_hz: number, watermark: number): FifoMetrics {
   const clampedWatermark = Math.max(1, Math.min(FIFO_SAMPLES, watermark));
-  const safeOdr = Math.max(0.001, odr_hz);
+  const safeOdr = Number.isFinite(odr_hz) && odr_hz > 0 ? odr_hz : 0.001;
   const fill_time_s = clampedWatermark / safeOdr;
 
   return {
@@ -116,24 +122,29 @@ export function calculateFifoMetrics(odr_hz: number, watermark: number): FifoMet
 export function calculatePowerBreakdown(config: AppConfig): PowerBreakdown {
   const lis = estimateLisCurrent(config.lis);
   const fifo = calculateFifoMetrics(config.lis.odr_hz, config.lis.fifo_watermark);
-  const smartSamplingMetrics = calculateSmartSamplingMetrics(config.smartSampling, config.report.interval_seconds);
-
-  const duty_fifo = fifo.wakeups_per_second * (config.nrf52.fifo_service_time_ms / 1000);
-  const fifo_service_uA = config.nrf52.active_current_mA * 1000 * duty_fifo;
-
-  const duty_finalize = (config.nrf52.finalize_time_ms / 1000) / config.report.interval_seconds;
-  const finalize_uA = config.nrf52.active_current_mA * 1000 * duty_finalize;
-
-  const flashEnabled = config.flash.enabled && config.report.store_to_flash;
-  const stored_windows_per_second = smartSamplingMetrics.stored_windows_per_day / 86400;
-  const flash_write_uA = flashEnabled
-    ? config.flash.write_current_mA * 1000 * (config.flash.write_time_ms / 1000) * stored_windows_per_second
+  const motion = calculateMotionMetrics(config);
+  const storage = calculateStorageUsage(config);
+  const duty_fifo = fifo.wakeups_per_second * config.nrf52.fifo_service_time_ms / 1000;
+  const duty_sample = config.lis.odr_hz * config.nrf52.sample_processing_time_us / 1e6;
+  const duty_feature = motion.feature_windows_per_day / 86400 * config.nrf52.feature_finalize_time_ms / 1000;
+  const duty_finalize = config.nrf52.finalize_time_ms / 1000 / config.report.interval_seconds;
+  // Empirical per-value sorting budget; calibrate for the report size and sorting algorithm.
+  const duty_percentile = hasPercentiles(config)
+    ? motion.feature_windows_per_report * config.nrf52.percentile_time_per_value_us / 1e6 / config.report.interval_seconds
     : 0;
-
-  const erase_events_per_second = stored_windows_per_second / Math.max(1, config.flash.erase_interval_records);
-  const flash_erase_uA = flashEnabled
-    ? config.flash.erase_current_mA * 1000 * (config.flash.erase_time_ms / 1000) * erase_events_per_second
-    : 0;
+  const mcu_active_duty = duty_fifo + duty_sample + duty_feature + duty_finalize + duty_percentile;
+  // Sleep is counted across the entire day; active terms add only current above that baseline.
+  const incremental_active_uA = Math.max(0, config.nrf52.active_current_mA * 1000 - config.nrf52.sleep_current_uA);
+  const fifo_service_uA = incremental_active_uA * duty_fifo;
+  const sample_processing_uA = incremental_active_uA * duty_sample;
+  const feature_finalize_uA = incremental_active_uA * duty_feature;
+  const finalize_uA = incremental_active_uA * duty_finalize;
+  const percentile_uA = incremental_active_uA * duty_percentile;
+  const stored_reports_per_second = storage.stored_reports_per_day / 86400;
+  const flash_write_uA = config.flash.write_current_mA * config.flash.write_time_ms * stored_reports_per_second;
+  const flash_erase_uA = config.flash.erase_current_mA * config.flash.erase_time_ms *
+    stored_reports_per_second / Math.max(1, config.flash.erase_interval_records);
+  const radio_uA = config.radio.charge_per_report_mAs * 1000 * storage.transmitted_reports_per_day / 86400;
 
   const flash_uA = flash_write_uA + flash_erase_uA;
 
@@ -142,6 +153,10 @@ export function calculatePowerBreakdown(config: AppConfig): PowerBreakdown {
     config.nrf52.sleep_current_uA +
     fifo_service_uA +
     finalize_uA +
+    sample_processing_uA +
+    feature_finalize_uA +
+    percentile_uA +
+    radio_uA +
     flash_uA;
 
   const avg_power_uW = total_uA * config.battery.nominal_V;
@@ -153,6 +168,11 @@ export function calculatePowerBreakdown(config: AppConfig): PowerBreakdown {
     sleep_uA: config.nrf52.sleep_current_uA,
     fifo_service_uA,
     finalize_uA,
+    sample_processing_uA,
+    feature_finalize_uA,
+    percentile_uA,
+    radio_uA,
+    mcu_active_duty,
     flash_uA,
     flash_write_uA,
     flash_erase_uA,

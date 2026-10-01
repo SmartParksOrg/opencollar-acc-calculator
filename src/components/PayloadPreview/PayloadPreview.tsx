@@ -15,7 +15,7 @@ export function PayloadPreview({ config }: Props): JSX.Element {
       <details open>
         <summary><span className="section-title">Payload preview</span></summary>
         <div className="collapsible-content">
-          <p className="small"><strong>Payload size:</strong> {payloadBytes} bytes</p>
+          <p className="small"><strong>Report size:</strong> {payloadBytes} field bytes + {config.payload.header_bytes} overhead bytes = {payloadBytes + config.payload.header_bytes} bytes</p>
           <table className="table">
         <thead>
           <tr>
@@ -41,17 +41,18 @@ export function PayloadPreview({ config }: Props): JSX.Element {
         </tbody>
           </table>
 
-          <p className="small"><strong>Little-endian hex bytes:</strong> {example.hex || "(empty payload)"}</p>
+          <p className="small"><strong>Illustrative field bytes (little-endian assumption; overhead excluded):</strong> {example.hex || "(empty payload)"}</p>
           {config.smartSampling.enabled ? (
             <p className="small">
-              This payload is computed every window, but stored only when Smart Sampling rules select it.
+              This payload is generated every report interval from all valid feature windows. Smart Sampling selects complete reports for storage and enabled radio transmission.
             </p>
           ) : null}
           {config.smartSampling.enabled && config.smartSampling.episodes_enabled ? (
             <p className="small">
-              Episodes stores {config.smartSampling.episode_pre_windows} windows before and {config.smartSampling.episode_post_windows} after triggers.
+              Episodes stores {config.smartSampling.episode_pre_windows} reports before and {config.smartSampling.episode_post_windows} after triggers.
             </p>
           ) : null}
+          <p className="small">Synthetic values illustrate encoding, not predicted motion or temperature. Percentile RAM excludes accumulators and any extra buffers needed for deferred sorting. Header bytes are budgeted separately; no firmware header is invented here.</p>
           <pre style={{ whiteSpace: "pre-wrap", margin: 0 }}>{JSON.stringify(example.json, null, 2)}</pre>
         </div>
       </details>
